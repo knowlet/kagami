@@ -61,11 +61,11 @@ func RecvPacket(con net.Conn, c *maplelib.Crypt) (packet maplelib.Packet, err er
         r := bufio.NewReader(con)
         
         // encrypted header (4 bytes)
-        p := make([]byte, EncryptedHeaderSize)
+        p := make([]byte, consts.EncryptedHeaderSize)
         
         n, err := r.Read(p)
         
-        if n != EncryptedHeaderSize || err != nil {
+        if n != consts.EncryptedHeaderSize || err != nil {
                 packet, err = nil, IOError{n, err}
                 return
         }
@@ -86,6 +86,7 @@ func RecvPacket(con net.Conn, c *maplelib.Crypt) (packet maplelib.Packet, err er
         c.Shuffle()
         
         packet, err = maplelib.Packet(data), nil
+        return
 }
 
 // Sends the handshake and handles packets for a single client
@@ -108,7 +109,7 @@ func clientLoop(con net.Conn) {
         fmt.Println("ivrecv:", recv)
         
         for {
-                err, inpacket := RecvPacket(con, &recv, chpacket, cherror)
+                err, inpacket := RecvPacket(con, &recv)
                 if err != nil {
                         fmt.Println(err)
                         break
