@@ -1,0 +1,164 @@
+I read through the entire source of Vana and this is a rough scheme of inter-server communication.
+I will try to implement and adapt it to my server emulator.
+
+-----------------------------------------------------------
+
+Login (LoginServerAccept...):
+
+connects to:
+nothing, it only accepts connections from other servers
+
+accepts:
+* world
+* channel
+
+received commands:
+* register channel (register_channel) <-world
+* update channel population (update_channel_pop) <-world
+* remove channel (remove_channel) <-world
+* calculate ranking (calculate_ranking) <-channel
+* send message to world (to_world) <-??? (gets relayed to world)
+* send message to multiple worlds (to_world_list) <-??? (gets relayed to multiple worldservs)
+* send message to all worlds (to_all_worlds) <-??? (gets relayed to all worldservs)
+* rehash config (rehash_config) <-world
+
+sent commands:
+* tell worldserver which world number and port it should bind to (world_connect) ->world
+* tell worldserver that there are no more worlds available (world_connect) ->world
+* ask channel server connect to a world server specified in the packet (login_channel_connect) ->chan
+* send message to channel (to_channel) ->world
+* rehash config (rehash_config) ->chan
+* sync ->channel:
+	player:
+		- character created
+		- character deleted
+
+-----------------------------------------------------------
+
+Channel (WorldServerConnect...):
+
+connects to:
+* login (8485)
+* world (7100)
+
+accepts:
+nothing?
+
+received commands:
+* make this channel server connect to a world server specified in the packet (login_channel_connect) <-login
+* bind this channel server to a channel number and port (recv'd in the packet) and start listening (channel_connect) <-world
+* send message to player id (to_player) <-world
+* send message to multiple player id's (to_player_list) <-world
+* send message to all players (to_all_players) <-world
+* refresh data / reloadMcdb (refresh_data) <-world
+* rehash config (rehash_config) <-login
+* sync <-??? :
+	config:
+		- rate set
+		- scrolling header
+
+	channelstart (receives players and parties)
+
+	player:
+		- new connectable
+		- delete connectable
+		- change channel go
+		- update player
+		- character created
+		- character deleted
+
+	party:
+		- create
+		- disband
+		- switch leader
+		- add member
+		- remove member
+
+	buddy:
+		- invite
+		- accept invite
+		- remove buddy
+		- readd buddy
+
+sent commands:
+* calculate ranking (calculate_ranking) ->login
+* send message to all channels (refresh data/mcdb) (to_all_channels) ->world (gets relayed back to all channels as a message to all players)
+* send message to login (rehash config) (to_login) ->world (gets relayed back to all connected worlds)
+* sync ->world, ???:
+	config: 
+		- scrolling header
+		- rate reset
+		- rate set
+
+	player:
+		- update player
+		- change channel request
+		- connect
+		- disconnect
+		- change channel go
+
+	party
+
+	buddy:
+		- accept invite
+		- remove buddy
+		- readd buddy
+
+-----------------------------------------------------------
+
+World (LoginServerConnect..., WorldServerAccept...):
+
+connects to:
+* login (8485)
+
+accepts:
+* channel
+
+received commands:
+* bind current world to a world id and port (world_connect) <-login
+* rehash config (rehash_config) <-login
+* send message to channel (to_channel) <-login
+* send message to multiple channels (to_channel_list) <-???
+* send message to all channels (to_all_channels) <-chan
+* send message to login (to_login) <-chan
+* send message to player (to_player) <-???
+* send message to multiple players (to_player_list) <-chan
+* send message to all players (to_all_players) <-chan
+* send message to channel (to_channel) <-login
+* send message to multiple channels (to_channel_list) <-???
+* send message to all channels (to_all_channels) <-chan
+* sync <-chan, ???:
+	config:
+		- rate set
+		- rate reset
+		- scrolling header
+
+	player:
+		- change channel request
+		- change channel go
+		- connect
+		- disconnect
+		- update player
+		- character created
+		- character deleted
+
+	party:
+		- create
+		- leave
+		- expel
+		- join
+		- set leader
+
+	buddy:
+		- invite
+		- accept invite
+		- remove buddy
+		- readd buddy
+
+sent commands:
+* register channel (register_channel) ->login
+* update channel population (update_channel_pop) ->login
+* remove channel (remove_channel) ->login
+* send message to player (to_player) ->chan
+* bind chan to a channel number and port and make chanserv start listening (channel_connect) ->chan
+* rehash config (rehash_config) ->login

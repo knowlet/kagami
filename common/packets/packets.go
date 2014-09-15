@@ -19,9 +19,10 @@ import (
         "github.com/Francesco149/maplelib"
 )
 
-// Returns a handshake packet that must be send UNENCRYPTED to newly connected clients
-func Handshake(mapleVersion uint16, ivsend [4]byte, 
-        ivrecv [4]byte, testserver bool) (p maplelib.Packet) {
+// Handshake returns a handshake packet that must be sent UNENCRYPTED to newly connected clients
+// The initialization vectors ivsend and ivrecv are 4 bytes, any extra data will be ignored
+func Handshake(mapleVersion uint16, ivsend []byte, 
+        ivrecv []byte, testserver bool) (p maplelib.Packet) {
         
         testbyte := byte(8)
         if testserver {
@@ -32,8 +33,8 @@ func Handshake(mapleVersion uint16, ivsend [4]byte,
         p.Encode2(OHandshake) // header
         p.Encode2(mapleVersion) // game version
         p.Encode2(0x0000) // dunno maybe version is a dword
-        p.Append(ivrecv[:])
-        p.Append(ivsend[:])
+        p.Append(ivrecv[:4])
+        p.Append(ivsend[:4])
         p.Encode1(testbyte) // 5 = test server, else 8
         
         return

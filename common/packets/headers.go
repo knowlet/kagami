@@ -13,7 +13,7 @@
         along with kagami. If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Packet headers and builders for GMS v62
+// Package packets contains packet headers and builders for GMS v62
 package packets
 
 // Send packet headers
