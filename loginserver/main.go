@@ -62,11 +62,11 @@ func RecvPacket(con net.Conn, c *maplelib.Crypt,
         r := bufio.NewReader(con)
         
         // encrypted header (4 bytes)
-        p := make([]byte, 4)
+        p := make([]byte, EncryptedHeaderSize)
         
         n, err := r.Read(p)
         
-        if n != 4 || err != nil {
+        if n != EncryptedHeaderSize || err != nil {
                 cherror <- IOError{n, err}
                 chpacket <- nil
                 return

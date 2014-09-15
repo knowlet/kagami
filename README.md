@@ -3,8 +3,8 @@ This project is still extremely early, so it only does very few things at the mo
 
 Feature progress
 ============
-* Initial handshake with the client - done
-* Packet decryption/encryption - WIP
+* Initial handshake with the client - [done](http://www.hnng.moe/f/49)
+* Packet decryption/encryption - [done](http://hnng.moe/f/4m)
 * Login - WIP
 * MySQL - WIP
 
