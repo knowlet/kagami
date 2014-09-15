@@ -55,8 +55,7 @@ func SendPacket(con net.Conn, packet maplelib.Packet) {
         io.Copy(con, bytes.NewReader(packet))
 }
 
-func RecvPacket(con net.Conn, c *maplelib.Crypt, 
-        chpacket chan maplelib.Packet, cherror chan error) {
+func RecvPacket(con net.Conn, c *maplelib.Crypt) (packet maplelib.Packet, err error) {
         var plen int = 0
         
         r := bufio.NewReader(con)
@@ -67,8 +66,7 @@ func RecvPacket(con net.Conn, c *maplelib.Crypt,
         n, err := r.Read(p)
         
         if n != EncryptedHeaderSize || err != nil {
-                cherror <- IOError{n, err}
-                chpacket <- nil
+                packet, err = nil, IOError{n, err}
                 return
         }
         
@@ -77,8 +75,7 @@ func RecvPacket(con net.Conn, c *maplelib.Crypt,
         fmt.Printf("Packet length is %d\n", plen)
         
         if plen < 2 {
-                cherror <- InvalidPacketError(plen)
-                chpacket <- nil
+                packet, err = nil, InvalidPacketError(plen)
                 return
         }
         
@@ -88,16 +85,13 @@ func RecvPacket(con net.Conn, c *maplelib.Crypt,
         c.Decrypt(data)
         c.Shuffle()
         
-        cherror <- nil
-        chpacket <- maplelib.Packet(data)
+        packet, err = maplelib.Packet(data), nil
 }
 
 // Sends the handshake and handles packets for a single client
 func clientLoop(con net.Conn) {
         var ivrecv, ivsend [4]byte
         
-        cherror := make(chan error)
-        chpacket := make(chan maplelib.Packet)
         defer con.Close()
          
         binary.LittleEndian.PutUint32(ivrecv[:], rand.Uint32())
@@ -114,8 +108,7 @@ func clientLoop(con net.Conn) {
         fmt.Println("ivrecv:", recv)
         
         for {
-                go RecvPacket(con, &recv, chpacket, cherror)
-                err, inpacket := <-cherror, <-chpacket
+                err, inpacket := RecvPacket(con, &recv, chpacket, cherror)
                 if err != nil {
                         fmt.Println(err)
                         break
