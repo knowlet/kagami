@@ -20,8 +20,8 @@ import (
 )
 
 // Returns a handshake packet that must be send UNENCRYPTED to newly connected clients
-func Handshake(mapleVersion uint16, ivsend []byte, 
-        ivrecv []byte, testserver bool) (p maplelib.Packet) {
+func Handshake(mapleVersion uint16, ivsend [4]byte, 
+        ivrecv [4]byte, testserver bool) (p maplelib.Packet) {
         
         testbyte := byte(8)
         if testserver {

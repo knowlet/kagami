@@ -23,28 +23,109 @@ import (
         "io"
         "bytes"
         "encoding/binary"
+        "bufio"
 )
 
 import (
+        "github.com/Francesco149/maplelib"
         "github.com/Francesco149/kagami/common/packets"
+        "github.com/Francesco149/kagami/common/consts"
 )
 
+// TODO: make a generic server package for packet handling
+
+// Returned when an I/O error occurs while reading data from the socket
+type IOError struct {
+        BytesRead int 
+        Err error 
+}
+func (e IOError) Error() string {
+        return fmt.Sprintf("Could only read %d bytes. Err = %v.", e.BytesRead, e.Err)   
+}
+
+// Returned when a received packet has invalid size specified in the 
+// encrypted header
+type InvalidPacketError int
+func (e InvalidPacketError) Error() string {
+        return fmt.Sprintf("Recieved invalid packet of size %d.", int(e))        
+}
+
+// Sends a packet through the given connection
+func SendPacket(con net.Conn, packet maplelib.Packet) {
+        io.Copy(con, bytes.NewReader(packet))
+}
+
+func RecvPacket(con net.Conn, c *maplelib.Crypt, 
+        chpacket chan maplelib.Packet, cherror chan error) {
+        var plen int = 0
+        
+        r := bufio.NewReader(con)
+        
+        // encrypted header (4 bytes)
+        p := make([]byte, 4)
+        
+        n, err := r.Read(p)
+        
+        if n != 4 || err != nil {
+                cherror <- IOError{n, err}
+                chpacket <- nil
+                return
+        }
+        
+        fmt.Printf("Received encrypted header % X\n", p)
+        plen = maplelib.GetPacketLength(p)
+        fmt.Printf("Packet length is %d\n", plen)
+        
+        if plen < 2 {
+                cherror <- InvalidPacketError(plen)
+                chpacket <- nil
+                return
+        }
+        
+        // data
+        data := make([]byte, plen)
+        r.Read(data)
+        c.Decrypt(data)
+        c.Shuffle()
+        
+        cherror <- nil
+        chpacket <- maplelib.Packet(data)
+}
+
+// Sends the handshake and handles packets for a single client
 func clientLoop(con net.Conn) {
+        var ivrecv, ivsend [4]byte
+        
+        cherror := make(chan error)
+        chpacket := make(chan maplelib.Packet)
         defer con.Close()
-        
-        ivrecv := make([]byte, 4)
-        ivsend := make([]byte, 4)
          
-        binary.LittleEndian.PutUint32(ivrecv, rand.Uint32())
-        binary.LittleEndian.PutUint32(ivsend, rand.Uint32())
-        hello := packets.Handshake(62, ivsend, ivrecv, false)
+        binary.LittleEndian.PutUint32(ivrecv[:], rand.Uint32())
+        binary.LittleEndian.PutUint32(ivsend[:], rand.Uint32())
+        hs := packets.Handshake(62, ivsend, ivrecv, false)
         
-        fmt.Printf("Sending hello packet: %v\n", hello)
-        io.Copy(con, bytes.NewReader(hello))
+        fmt.Printf("Sending handshake: %v\n", hs)
+        SendPacket(con, hs)
+        
+        send := maplelib.NewCrypt(ivsend, consts.MapleVersion)
+        recv := maplelib.NewCrypt(ivrecv, consts.MapleVersion)
+        
+        fmt.Println("ivsend:", send)
+        fmt.Println("ivrecv:", recv)
         
         for {
+                go RecvPacket(con, &recv, chpacket, cherror)
+                err, inpacket := <-cherror, <-chpacket
+                if err != nil {
+                        fmt.Println(err)
+                        break
+                }
+                
+                fmt.Println("Decrypted packet:", inpacket)
                 time.Sleep(100 * time.Millisecond)        
         }
+        
+        fmt.Println("Dropping: ", con.RemoteAddr())
 }
 
 func main() {
