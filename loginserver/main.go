@@ -109,7 +109,7 @@ func clientLoop(con net.Conn) {
         fmt.Println("ivrecv:", recv)
         
         for {
-                err, inpacket := RecvPacket(con, &recv)
+                inpacket, err := RecvPacket(con, &recv)
                 if err != nil {
                         fmt.Println(err)
                         break
