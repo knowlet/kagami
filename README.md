@@ -16,15 +16,17 @@ Once you've done that, all that's left is to clone the repository.
 Make sure that you have git and go installed and run
 
     go get github.com/Francesco149/kagami
-    
-Then simply
 
-    import "github.com/Francesco149/kagami"
-    
-and you're ready to go.
 
 You can also manually clone the repository anywhere you want by running
     git clone https://github.com/Francesco149/kagami.git
+    
+Running the server
+============
+For now only the loginserver is present, so all you have to do is
+
+    go install github.com/Francesco149/kagami/loginserver
+    loginserver
     
 Documentation
 ============

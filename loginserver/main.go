@@ -22,9 +22,7 @@ import (
         "net"
 )
 
-import (
-        "github.com/Francesco149/kagami/common"
-)
+import "github.com/Francesco149/kagami/common"
 
 // clientLoop sends the handshake and handles packets for a single client in a loop
 func clientLoop(basecon net.Conn) {
@@ -38,21 +36,38 @@ func clientLoop(basecon net.Conn) {
                         break
                 }
                 
-                fmt.Println("Decrypted packet:", inpacket)
-                time.Sleep(100 * time.Millisecond)        
+                handled, err := common.Handle(con, inpacket)
+                if err != nil {
+                        fmt.Println(err)
+                        break        
+                }
+                
+                // TODO: handle loginserver packets here
+                
+                if !handled {
+                        fmt.Println("Unhandled packet")
+                        break
+                }
         }
         
         fmt.Println("Dropping: ", con.Conn().RemoteAddr())
 }
 
 func main() {
+        const loginport = 8484 // TODO: config file
+        
         rand.Seed(time.Now().UnixNano())
         
-        sock, err := common.NewTcpServer(":8484")
+        fmt.Println("Kagami Pre-Alpha")
+        fmt.Println("Initializing LoginServer...")
+        
+        sock, err := common.NewTcpServer(fmt.Sprintf(":%d", loginport))
         if err != nil { 
                 fmt.Println("Failed to create socket: ", err)
                 return 
         }
+        
+        fmt.Println("Listening on port", loginport)
         
         for {
                 con, err := sock.Accept()

@@ -18,5 +18,11 @@ package packets
 
 // Send packet headers
 const (
-        OHandshake = 0x000D        
+        OHandshake = 0x000D  
+        OPing = 0x0011
+)
+
+// Recv packet headers
+const (
+        IPong = 0x0018
 )

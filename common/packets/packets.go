@@ -15,9 +15,7 @@
 
 package packets
 
-import (
-        "github.com/Francesco149/maplelib"
-)
+import "github.com/Francesco149/maplelib"
 
 // Handshake returns a handshake packet that must be sent UNENCRYPTED to newly connected clients
 // The initialization vectors ivsend and ivrecv are 4 bytes, any extra data will be ignored
@@ -36,6 +34,13 @@ func Handshake(mapleVersion uint16, ivsend []byte,
         p.Append(ivrecv[:4])
         p.Append(ivsend[:4])
         p.Encode1(testbyte) // 5 = test server, else 8
-        
+        return
+}
+
+// Ping returns a ping packet with a placeholder for the encrypted header
+func Ping() (p maplelib.Packet) {
+        p = maplelib.NewPacket()
+        p.Encode4(0x00000000) // placeholder for the encrypted header
+        p.Encode2(OPing) // header      
         return
 }

@@ -13,10 +13,30 @@
         along with kagami. If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Package consts contains various constants used everywhere in kagami
-package consts
+package common
 
-const MapleVersion = 62 // MapleVersion represents the required game client version
-const EncryptedHeaderSize = 4 // EncryptedHeaderSize is the size in bytes of encrypted headers
-const ClientTimeout = 30 // ClientTimeout is the number of seconds a client has to reply to a ping before it times out
-const ClientIdle = 1 // ClientIdle is the number of seconds with no packet activity after which a client is considered idle
+import (
+        "github.com/Francesco149/maplelib" 
+        "github.com/Francesco149/kagami/common/packets"
+)
+
+func Handle(con Connection, p maplelib.Packet) (handled bool, err error) {
+        it := p.Begin()
+        header, err := p.Decode2(&it)
+        if err != nil {
+                return false, err        
+        }
+        
+        switch (header) {
+        case packets.IPong:     
+                return handlePong(con)
+        }
+        
+        return false, nil; // forward packet to next handler
+}
+
+func handlePong(con Connection) (handled bool, err error) {
+        err = con.OnPong()
+        handled = (err == nil)
+        return
+}
