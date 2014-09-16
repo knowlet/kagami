@@ -50,4 +50,4 @@ You can get the documentation with the built-in godoc
     
 If you're looking for a specific function or type just use
 
-    godoc github.com/Francesco149/maplelib MyFunction
+    godoc github.com/Francesco149/kagami MyFunction
