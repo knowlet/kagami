@@ -58,9 +58,9 @@ type EncryptedConnection struct {
         lastactive int64
 }
 
-// Checks if the given error is a timeout
+// Checks that the given error is not nil and is a timeout
 func isTimeout(err error) bool {
-        // DON'T ASK I COPYPASTED THIS
+        // x.(T) asserts that x is not nil and the value stored in x is of type T
         if neterr, ok := err.(net.Error); ok && neterr.Timeout() {
                 return true        
         }
@@ -79,10 +79,10 @@ func (c *EncryptedConnection) sendHandshake(isTestServer bool) error {
         
         c.renewSendTimeout()
         n, err := c.Conn().Write(hs)
+        if isTimeout(err) {
+                return errors.New("Write timeout")        
+        }
         if err != nil {
-                if isTimeout(err) {
-                        return errors.New("Write timeout")        
-                }
                 return IOError{n, err}                
         }
         
@@ -168,7 +168,7 @@ func (c *EncryptedConnection) tryRead(p []byte) (err error) {
                 
                 // read data
                 n, err := c.Conn().Read(p)
-                if err != nil && isTimeout(err) {
+                if isTimeout(err) {
                         continue
                 }
                 if n != cap(p) || err != nil {
