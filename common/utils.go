@@ -16,28 +16,31 @@
 package common
 
 import (
-	"github.com/Francesco149/kagami/common/packets"
-	"github.com/Francesco149/maplelib"
+	"crypto/rand"
+	"crypto/sha512"
+	"fmt"
 )
 
-// Handle handles packets that are common to all three servers
-func Handle(con Connection, p maplelib.Packet) (handled bool, err error) {
-	it := p.Begin()
-	header, err := it.Decode2()
-	if err != nil {
-		return false, err
-	}
+import "github.com/Francesco149/kagami/common/consts"
 
-	switch header {
-	case packets.IPong:
-		return handlePong(con)
-	}
-
-	return false, nil // forward packet to next handler
+// HashPassword returns a salted sha-512 hash of the given password
+func HashPassword(password, salt string) string {
+	hasher := sha512.New()
+	saltedpassword := fmt.Sprintf("%sIREALLYLIKELOLIS%s", password, salt)
+	hasher.Write([]byte(saltedpassword))
+	return fmt.Sprintf("%x", hasher.Sum(nil))
 }
 
-func handlePong(con Connection) (handled bool, err error) {
-	err = con.OnPong()
-	handled = (err == nil)
-	return
+// MakeSalt generates a random string of fixed length that will be used as a password salt
+func MakeSalt() string {
+	var salt [consts.SaltLength]byte
+	rand.Read(salt[:])
+
+	// make it a valid string
+	for i := 0; i < consts.SaltLength; i++ {
+		salt[i] %= 93 // characters will be between ascii 33 and ascii 126
+		salt[i] += 33
+	}
+
+	return string(salt[:])
 }

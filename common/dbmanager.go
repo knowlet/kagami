@@ -15,9 +15,27 @@
 
 package common
 
-import "net"
+import "fmt"
 
-// NewTcpServer creates and returns a TCP listener on the given port
-func NewTcpServer(port string) (sock net.Listener, err error) {
-	return net.Listen("tcp", port)
+import (
+	"github.com/Francesco149/kagami/common/consts"
+	"github.com/ziutek/mymysql/mysql"
+	_ "github.com/ziutek/mymysql/thrsafe" // Thread safe engine
+)
+
+var db mysql.Conn = nil
+
+func GetDB() mysql.Conn {
+	if db == nil {
+		fmt.Println("Connecting to database on", consts.MySQLHost)
+		db = mysql.New("tcp", "", consts.MySQLHost, consts.MySQLUser,
+			consts.MySQLPassword, consts.MySQLDB)
+		err := db.Connect()
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("Connected!")
+	}
+
+	return db
 }
