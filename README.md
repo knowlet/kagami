@@ -9,7 +9,7 @@ Feature progress
 * MySQL - [done](http://www.hnng.moe/f/5H)
 * World / Channel Selection - WIP
 * Character Selection / Creation / Deletion - WIP
-* Handling Bans - WIP
+* Handling Bans - [done](http://www.hnng.moe/f/5Q)
 * Getting in game - WIP
 
 Getting started
