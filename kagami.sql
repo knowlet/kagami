@@ -11,6 +11,8 @@ CREATE TABLE `accounts` (
   `ban_reason_message` varchar(255) DEFAULT NULL,
   `last_login` datetime DEFAULT NULL,
   `creation_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `admin` tinyint(1) NOT NULL DEFAULT '0',
+  `gm_level` tinyint(4) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `username_UNIQUE` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

@@ -36,3 +36,4 @@ const MaxPasswordSize = 12 // MaxPasswordSize is the maximum length of a passwor
 const InitialCharSlots = 3 // InitialCharSlots is how many character slots a new user has by default
 const AutoRegister = false // AutoRegister defines whether it's possible to automatically register by attempting to log into a non existing account
 const SaltLength = 10      // SaltLength is the length of password salts
+const MaxLoginFails = 10   // MaxLoginFails is the amount of failed logins it takes to get disconnected, 0 = disabled

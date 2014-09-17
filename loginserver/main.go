@@ -22,12 +22,15 @@ import (
 	"time"
 )
 
-import "github.com/Francesco149/kagami/common"
+import (
+	"github.com/Francesco149/kagami/common"
+	"github.com/Francesco149/kagami/loginserver/client"
+)
 
 // clientLoop sends the handshake and handles packets for a single client in a loop
 func clientLoop(basecon net.Conn) {
 	defer basecon.Close()
-	con := common.NewEncryptedConnection(basecon, false)
+	con := client.NewConnection(basecon, false)
 
 	for {
 		inpacket, err := con.RecvPacket()
@@ -44,6 +47,10 @@ func clientLoop(basecon net.Conn) {
 
 		if !handled {
 			handled, err = Handle(con, inpacket)
+			if err != nil {
+				fmt.Println(err)
+				break
+			}
 		}
 
 		if !handled {

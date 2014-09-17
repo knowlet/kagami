@@ -26,11 +26,12 @@ import (
 	"github.com/Francesco149/kagami/common"
 	"github.com/Francesco149/kagami/common/consts"
 	"github.com/Francesco149/kagami/common/packets"
+	"github.com/Francesco149/kagami/loginserver/client"
 	"github.com/Francesco149/maplelib"
 )
 
 // Handle handles loginserver packets
-func Handle(con common.Connection, p maplelib.Packet) (handled bool, err error) {
+func Handle(con *client.Connection, p maplelib.Packet) (handled bool, err error) {
 	it := p.Begin()
 	header, err := it.Decode2()
 	if err != nil {
@@ -52,11 +53,13 @@ func Handle(con common.Connection, p maplelib.Packet) (handled bool, err error) 
 }
 
 // handleLoginPassword handles a login packet
-func handleLoginPassword(con common.Connection, it maplelib.PacketIterator) (handled bool, err error) {
+func handleLoginPassword(con *client.Connection, it maplelib.PacketIterator) (handled bool, err error) {
 	// TODO split this func into smaller funcs so that it's more readable
+
 	var successful bool = false
-	var online, banned, banreason int = 0, 0, 0
-	var bantime int64
+	var online, banned, admin, gmlevel int = 0, 0, 0, 0
+	var banreason, deletepassword uint = 0, 0
+	var bantime, creation int64
 	handled = false
 
 	user, err := it.DecodeString()
@@ -87,6 +90,7 @@ func handleLoginPassword(con common.Connection, it maplelib.PacketIterator) (han
 		return
 	}
 
+	// column indices
 	colpassword := res.Map("password")
 	colsalt := res.Map("salt")
 	coluserid := res.Map("id")
@@ -94,9 +98,14 @@ func handleLoginPassword(con common.Connection, it maplelib.PacketIterator) (han
 	colbanned := res.Map("banned")
 	colbanreason := res.Map("ban_reason")
 	colbanexpire := res.Map("ban_expire")
+	colcreation := res.Map("creation_date")
+	coladmin := res.Map("admin")
+	colgmlevel := res.Map("gm_level")
+	coldeletepassword := res.Map("char_delete_password")
 
 	handled = true
 
+	// {autoregister begin:
 	// account not found, see if we can autoregister else send login failed
 	if len(rows) == 0 {
 		if consts.AutoRegister {
@@ -109,10 +118,37 @@ func handleLoginPassword(con common.Connection, it maplelib.PacketIterator) (han
 				return
 			}
 
+			// get the data we just inserted
+			st, err = db.Prepare("SELECT * FROM accounts WHERE username = ?")
+			res, err = st.Run(user)
+			rows, err = res.GetRows()
+			if err != nil {
+				handled = false
+				return
+			}
+			if len(rows) == 0 {
+				handled = false
+				err = errors.New("Could not find account in database after auto-registration")
+				return
+			}
+
+			// store account info obtained from the database
+			online = rows[0].Int(colonline)
+			banned = rows[0].Int(colbanned)
+			banreason = rows[0].Uint(colbanreason)
+			bantime = rows[0].Localtime(colbanexpire).Unix()
+			creation = rows[0].Localtime(colcreation).Unix()
+			admin = rows[0].Int(coladmin)
+			gmlevel = rows[0].Int(colgmlevel)
+			deletepassword = rows[0].Uint(coldeletepassword)
+
 			successful = true
 		} else {
 			err = con.SendPacket(packets.LoginFailed(packets.LoginNotRegistered))
 		}
+	// autoregister end}
+
+	// {regular login begin
 	} else {
 		// check ip ban
 		st, err = db.Prepare("SELECT id FROM ip_bans WHERE ip = ?")
@@ -136,8 +172,12 @@ func handleLoginPassword(con common.Connection, it maplelib.PacketIterator) (han
 
 			online = rows[0].Int(colonline)
 			banned = rows[0].Int(colbanned)
-			banreason = rows[0].Int(colbanreason)
+			banreason = rows[0].Uint(colbanreason)
 			bantime = rows[0].Localtime(colbanexpire).Unix()
+			creation = rows[0].Localtime(colcreation).Unix()
+			admin = rows[0].Int(coladmin)
+			gmlevel = rows[0].Int(colgmlevel)
+			deletepassword = rows[0].Uint(coldeletepassword)
 
 			switch {
 			// unhashed password, hash and accept login if correct
@@ -169,6 +209,7 @@ func handleLoginPassword(con common.Connection, it maplelib.PacketIterator) (han
 			}
 		}
 	}
+	// regular login end}
 
 	// correct info but the account is already logged in
 	if successful && online > 0 {
@@ -184,17 +225,29 @@ func handleLoginPassword(con common.Connection, it maplelib.PacketIterator) (han
 
 	// unsuccessful login
 	if !successful {
-		// TODO: increase failed login counter and disconnect if they are too many
+		con.RegisterInvalidLogin() // increase failed login counter
+
+		// drop the user for too many failed attempts
+		if consts.MaxLoginFails != 0 && con.InvalidLogins() > consts.MaxLoginFails {
+			handled = false
+			err = errors.New("Too many failed log-in attempts.")
+		}
 		return
 	}
 
-	// TODO: set player status as loggedin
+	con.SetPlayerStatus(client.LoggedIn)
+
 	// TODO: check silence
-	// TODO: store useful data such as creation time, deletion password etc for the player
+
+	con.SetAccountCreationTime(creation)
+	con.SetCharDeletePassword(uint32(deletepassword))
+	con.SetAdmin(admin > 0)
+	con.SetGmLevel(int32(gmlevel))
 
 	// confirm successful login
 	err = con.SendPacket(packets.AuthSuccessRequestPin(user))
 	fmt.Println(ip, "logged in")
+	fmt.Println(con)
 	return
 }
 
