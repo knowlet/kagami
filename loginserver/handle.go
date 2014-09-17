@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 )
 
 import (
@@ -52,8 +53,10 @@ func Handle(con common.Connection, p maplelib.Packet) (handled bool, err error) 
 
 // handleLoginPassword handles a login packet
 func handleLoginPassword(con common.Connection, it maplelib.PacketIterator) (handled bool, err error) {
+	// TODO split this func into smaller funcs so that it's more readable
 	var successful bool = false
-	var online int = 0
+	var online, banned, banreason int = 0, 0, 0
+	var bantime int64
 	handled = false
 
 	user, err := it.DecodeString()
@@ -84,6 +87,14 @@ func handleLoginPassword(con common.Connection, it maplelib.PacketIterator) (han
 		return
 	}
 
+	colpassword := res.Map("password")
+	colsalt := res.Map("salt")
+	coluserid := res.Map("id")
+	colonline := res.Map("online")
+	colbanned := res.Map("banned")
+	colbanreason := res.Map("ban_reason")
+	colbanexpire := res.Map("ban_expire")
+
 	handled = true
 
 	// account not found, see if we can autoregister else send login failed
@@ -103,60 +114,85 @@ func handleLoginPassword(con common.Connection, it maplelib.PacketIterator) (han
 			err = con.SendPacket(packets.LoginFailed(packets.LoginNotRegistered))
 		}
 	} else {
-		// check ban
-		// TODO
+		// check ip ban
+		st, err = db.Prepare("SELECT id FROM ip_bans WHERE ip = ?")
+		res, err = st.Run(ip)
+		ipbanrows, iperr := res.GetRows()
+		err = iperr
+		if err != nil {
+			handled = false
+			return
+		}
 
-		// check password
-		dbpassword := rows[0].Str(res.Map("password"))
-		dbsalt := rows[0].Str(res.Map("salt"))
-		userid := rows[0].Int(res.Map("id"))
-		online = rows[0].Int(res.Map("online"))
+		if len(ipbanrows) != 0 {
+			// the user is ip banned
+			ipbantime := time.Date(7100, time.January, 1, 0, 0, 0, 0, time.Local)
+			err = con.SendPacket(packets.LoginBanned(common.UnixToTempBanTimestamp(ipbantime.Unix()), packets.BanDeleted))
+		} else {
+			// store account info obtained from the database
+			dbpassword := rows[0].Str(colpassword)
+			dbsalt := rows[0].Str(colsalt)
+			userid := rows[0].Int(coluserid)
 
-		switch {
-		// unhashed password, hash and accept login if correct
-		case len(dbsalt) == 0:
-			if pass != dbpassword {
-				// the unhashed password is invalid
-				err = con.SendPacket(packets.LoginFailed(packets.LoginIncorrectPassword))
-			} else {
-				// the unhashed password is valid, hash it
-				newsalt := common.MakeSalt()
-				hashedpass := common.HashPassword(pass, newsalt)
+			online = rows[0].Int(colonline)
+			banned = rows[0].Int(colbanned)
+			banreason = rows[0].Int(colbanreason)
+			bantime = rows[0].Localtime(colbanexpire).Unix()
 
-				st, err = db.Prepare("UPDATE accounts SET password = ?, salt = ? WHERE id = ?")
-				_, err = st.Run(hashedpass, newsalt, userid)
-				if err != nil {
-					handled = false
-					return
+			switch {
+			// unhashed password, hash and accept login if correct
+			case len(dbsalt) == 0: // empty string = NULL
+				if pass != dbpassword {
+					// the unhashed password is invalid
+					err = con.SendPacket(packets.LoginFailed(packets.LoginIncorrectPassword))
+				} else {
+					// the unhashed password is valid, hash it
+					newsalt := common.MakeSalt()
+					hashedpass := common.HashPassword(pass, newsalt)
+
+					st, err = db.Prepare("UPDATE accounts SET password = ?, salt = ? WHERE id = ?")
+					_, err = st.Run(hashedpass, newsalt, userid)
+					if err != nil {
+						handled = false
+						return
+					}
+					successful = true
 				}
+
+			// regularly hashed password that matches the account's password
+			case common.HashPassword(pass, dbsalt) == dbpassword:
 				successful = true
+
+			// invalid password
+			default:
+				err = con.SendPacket(packets.LoginFailed(packets.LoginIncorrectPassword))
 			}
-
-		// regularly hashed password that matches the account's password
-		case common.HashPassword(pass, dbsalt) == dbpassword:
-			successful = true
-
-		// invalid password
-		default:
-			err = con.SendPacket(packets.LoginFailed(packets.LoginIncorrectPassword))
 		}
 	}
 
-	// todo: check ban
-
+	// correct info but the account is already logged in
 	if successful && online > 0 {
 		err = con.SendPacket(packets.LoginFailed(packets.LoginAlreadyLoggedIn))
 		successful = false
 	}
 
+	// correct info but the account is banned
+	if successful && banned > 0 {
+		err = con.SendPacket(packets.LoginBanned(common.UnixToTempBanTimestamp(bantime), byte(banreason)))
+		successful = false
+	}
+
+	// unsuccessful login
 	if !successful {
 		// TODO: increase failed login counter and disconnect if they are too many
 		return
 	}
 
 	// TODO: set player status as loggedin
+	// TODO: check silence
 	// TODO: store useful data such as creation time, deletion password etc for the player
 
+	// confirm successful login
 	err = con.SendPacket(packets.AuthSuccessRequestPin(user))
 	fmt.Println(ip, "logged in")
 	return

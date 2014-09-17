@@ -21,6 +21,8 @@ const MySQLPassword = "testing"    // MySQLPassword is the MySQL password
 const MySQLHost = "127.0.0.1:3306" // MySQLHost contains the ip:port of the MySQL database
 const MySQLDB = "my_kagami"        // MySQLDB contains the name of the used MySQL database
 
+const Loginport = 8484 // Loginport is the port the Login Server will listen on
+
 const MapleVersion = 62       // MapleVersion represents the required game client version
 const EncryptedHeaderSize = 4 // EncryptedHeaderSize is the size in bytes of encrypted headers
 const ClientTimeout = 30      // ClientTimeout is the number of seconds a client has to reply to a ping before it times out

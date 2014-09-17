@@ -44,3 +44,32 @@ func MakeSalt() string {
 
 	return string(salt[:])
 }
+
+// UnixToTempBanTimestamp converts a unix timestamp (in seconds) to a temp ban timestamp
+// (number of 100-ns intervals since 1/1/1601)
+func UnixToTempBanTimestamp(unixSeconds int64) uint64 {
+	// this should be the offset between the unix timestamp and this weird korean timestamp
+	const offset = 116444736000000000
+	millisecs := uint64(unixSeconds * 1000)
+	nano100 := millisecs * 10000 // number of 100-ns intervals
+	return nano100 + offset
+}
+
+// UnixToTempBanTimestamp converts a unix timestamp (in seconds) to a item timestamp
+func UnixToItemTimestamp(unixSeconds int64) uint64 {
+	const realYear2000 = 946681229830
+	const itemYear2000 = 1085019342
+	millisecs := uint64(unixSeconds * 1000)
+	time := (millisecs - realYear2000) / 1000 / 60
+	// what the fuck
+	return uint64(float64(time)*35.762787) - itemYear2000
+}
+
+// UnixToQuestTimestamp converts a unix timestamp (in seconds) to a quest timestamp
+func UnixToQuestTimestamp(unixSeconds int64) uint64 {
+	const questUnixAge = 27111908
+	millisecs := uint64(unixSeconds * 1000)
+	time := millisecs / 1000 / 60
+	// what the fuck
+	return uint64(float64(time)*0.1396987) + questUnixAge
+}

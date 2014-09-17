@@ -94,11 +94,81 @@ const (
 	LoginTrialVersionNotice = 27 // Some weird full client notice, probably for trial versions
 )
 
-// LoginFailed returns a login failed packet
+/*
+   LoginFailed returns a login failed packet
+   reason:
+   LoginIDDeleted          = 3  // ID deleted or blocked
+   LoginIncorrectPassword  = 4  // Incorrect password
+   LoginNotRegistered      = 5  // Not a registered id
+   LoginSystemError        = 6  // System error
+   LoginAlreadyLoggedIn    = 7  // Already logged in
+   LoginSystemError2       = 8  // System error
+   LoginSystemError3       = 9  // System error
+   LoginTooManyConnection  = 10 // Cannot process so many connections
+   LoginMustBeOver20       = 11 // Only users older than 20 can use this channel
+   LoginCannotLogAsMaster  = 13 // Unable to log on as master at this ip
+   LoginWrongGateway       = 14 // Wrong gateway or personal info and weird korean button
+   LoginTooManyConnection2 = 15 // Processing request with that korean button!
+   LoginMustVerifyEmail    = 16 // Please verify your account through email...
+   LoginWrongGateway2      = 17 // Wrong gateway or personal info
+   LoginMustVerifyEmail2   = 21 // Please verify your account through email...
+   LoginShowLicense        = 23 // License agreement
+   LoginMapleEuropeNotice  = 25 // Maple Europe notice =[
+   LoginTrialVersionNotice = 27 // Some weird full client notice, probably for trial versions
+*/
 func LoginFailed(reason int32) (p maplelib.Packet) {
 	p = newEncryptedPacket(OLoginStatus)
 	p.Encode4(uint32(reason))
 	p.Encode2(0x0000)
+	return
+}
+
+// Ban reasons for LoginBanned()
+const (
+	BanDeleted            = 0  // id has been deleted or blocked (used for ip bans, perma bans, chainbans...)
+	BanHacking            = 1  // hacking or illegal use of third party programs
+	BanMacro              = 2  // using macro/auto keyboard
+	BanAd                 = 3  // illicit promotion and advertising
+	BanHarassment         = 4  // harassment
+	BanProfane            = 5  // using profane language
+	BanScam               = 6  // scamming
+	BanMisconduct         = 7  // misconduct
+	BanIllegalTransaction = 8  // illegal cash transaction
+	BanIllegalCharging    = 9  // illegal charging/funding
+	BanTemporary          = 10 // temporary request
+	BanImpersonatingGM    = 11 // impersonating GM
+	BanIllegalPrograms    = 12 // using illegal programs or violating the game policy
+	BanMegaphone          = 13 // cursing, scamming or illegal trading via megaphones
+	BanNull               = 14 // empty message
+)
+
+/*
+   LoginBanned returns a login failed packet that tells the user he's temporarily banned.
+   If the timestamp is large enough, it will show as a perma ban.
+   reason:
+   BanDeleted            = 0 // id has been deleted or blocked (used for ip bans, perma bans, chainbans...)
+   BanHacking            = 1 // hacking or illegal use of third party programs
+   BanMacro              = 2 // using macro/auto keyboard
+   BanAd                 = 3 // illicit promotion and advertising
+   BanHarassment         = 4 // harassment
+   BanProfane            = 5 // using profane language
+   BanScam               = 6 // scamming
+   BanMisconduct         = 7 // misconduct
+   BanIllegalTransaction = 8 // illegal cash transaction
+   BanIllegalCharging    = 9 // illegal charging/funding
+   BanTemporary          = 10 // temporary request
+   BanImpersonatingGM    = 11 // impersonating GM
+   BanIllegalPrograms    = 12 // using illegal programs or violating the game policy
+   BanMegaphone          = 13 // cursing, scamming or illegal trading via megaphones
+   BanNull               = 14 // empty message
+*/
+func LoginBanned(koreanTimeExpire uint64, reason byte) (p maplelib.Packet) {
+	huahuehua := [5]byte{0x00, 0x00, 0x00, 0x00, 0x00}
+	p = newEncryptedPacket(OLoginStatus)
+	p.Encode1(0x02)
+	p.Append(huahuehua[:])
+	p.Encode1(reason)
+	p.Encode8(koreanTimeExpire)
 	return
 }
 
@@ -112,6 +182,12 @@ const (
 )
 
 // PinOperation returns a packet that updates the pin operation status of the client
+// mode:
+// PinOpAccepted    = 0 // PIN was accepted
+// PinOpNew         = 1 // Register a new PIN
+// PinOpInvalid     = 2 // Invalid pin / Reenter
+// PinOpSystemError = 3 // Connection failed due to system error
+// PinOpEnter       = 4 // Enter the pin
 func PinOperation(mode byte) (p maplelib.Packet) {
 	p = newEncryptedPacket(OPinOperation)
 	p.Encode1(mode)

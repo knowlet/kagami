@@ -14,3 +14,10 @@ CREATE TABLE `accounts` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `username_UNIQUE` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `ip_bans` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `ip` varchar(45) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ip_UNIQUE` (`ip`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

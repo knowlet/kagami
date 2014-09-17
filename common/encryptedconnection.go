@@ -17,10 +17,9 @@
 package common
 
 import (
-	"encoding/binary"
+	"crypto/rand"
 	"errors"
 	"fmt"
-	"math/rand"
 	"net"
 	"time"
 )
@@ -100,8 +99,8 @@ func NewEncryptedConnection(con net.Conn, isTestServer bool) (c *EncryptedConnec
 	c.con = con
 
 	// randomly generate initialization vectors
-	binary.LittleEndian.PutUint32(ivrecv[:], rand.Uint32())
-	binary.LittleEndian.PutUint32(ivsend[:], rand.Uint32())
+	rand.Read(ivrecv[:])
+	rand.Read(ivsend[:])
 
 	// init encryption
 	c.send = maplelib.NewCrypt(ivsend, consts.MapleVersion)
