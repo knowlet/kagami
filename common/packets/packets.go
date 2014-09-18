@@ -17,26 +17,6 @@ package packets
 
 import "github.com/Francesco149/maplelib"
 
-// Handshake returns a handshake packet that must be sent UNENCRYPTED to newly connected clients
-// The initialization vectors ivsend and ivrecv are 4 bytes, any extra data will be ignored
-func Handshake(mapleVersion uint16, ivsend []byte,
-	ivrecv []byte, testserver bool) (p maplelib.Packet) {
-
-	testbyte := byte(8)
-	if testserver {
-		testbyte = 5
-	}
-
-	p = maplelib.NewPacket()
-	p.Encode2(OHandshake)   // header
-	p.Encode2(mapleVersion) // game version
-	p.Encode2(0x0000)       // dunno maybe version is a dword
-	p.Append(ivrecv[:4])
-	p.Append(ivsend[:4])
-	p.Encode1(testbyte) // 5 = test server, else 8
-	return
-}
-
 // newEncryptedPacket creates a new packet and appends a placeholder for
 // the encrypted header plus the given header to it
 func newEncryptedPacket(header uint16) (p maplelib.Packet) {
@@ -208,6 +188,41 @@ func RequestPinAfterFailure() maplelib.Packet {
 // RequestPin returns a packet that tells the client to request a pin from the user
 func RequestPin() maplelib.Packet {
 	return PinOperation(PinOpEnter)
+}
+
+// WorldListEnd returns a packet that indicates the end of a world list
+func WorldListEnd() (p maplelib.Packet) {
+	p = newEncryptedPacket(OServerList)
+	p.Encode1(0xFF)
+	return
+}
+
+// Possible values for ServerStatus()
+const (
+	ServerNormal = 0 // Normal load
+	ServerHigh   = 1 // Highly populated
+	ServerFull   = 2 // Full
+)
+
+// ServerStatus returns a packet that tells the client how full the world is
+// possible values for status:
+// ServerNormal = 0 // Normal load
+// ServerHigh = 1 // Highly populated
+// ServerFull = 2 // Full
+func ServerStatus(status uint16) (p maplelib.Packet) {
+	p = newEncryptedPacket(OServerStatus)
+	p.Encode2(status)
+	return
+}
+
+// SendAllCharsBegin returns a packet that sends the beginning of a character list packet
+// unk must be charcount + (3 - charcount % 3)
+func SendAllCharsBegin(worldcount, unk uint32) (p maplelib.Packet) {
+        p = newEncryptedPacket(OAllCharlist)
+        p.Encode1(0x01)
+        p.Encode4(worldcount)
+        p.Encode4(unk)
+        return
 }
 
 // PinAssigned returns a packet that tells the client that the pin has successfully been assigned

@@ -24,8 +24,33 @@ import (
 
 import (
 	"github.com/Francesco149/kagami/common"
+	"github.com/Francesco149/kagami/common/config"
+	"github.com/Francesco149/kagami/common/consts"
 	"github.com/Francesco149/kagami/loginserver/client"
+	"github.com/Francesco149/kagami/loginserver/worlds"
 )
+
+// loadDefaultWorlds loads and adds the default world list to the loginserver
+func loadDefaultWorlds() {
+	// TODO: config files
+	configs := config.DefaultWorldConf()
+
+	for i, config := range configs {
+		id := consts.WorldId[i]
+
+		world := worlds.Get(id)
+		if world != nil {
+			world.SetConf(config)
+			continue // only refresh config
+		}
+
+		// add new world
+		world = &worlds.World{}
+		world.SetConf(config)
+		world.SetId(id)
+		world.SetPort(consts.WorldListenPort[i])
+	}
+}
 
 // clientLoop sends the handshake and handles packets for a single client in a loop
 func clientLoop(basecon net.Conn) {
@@ -63,20 +88,21 @@ func clientLoop(basecon net.Conn) {
 }
 
 func main() {
-	const loginport = 8484 // TODO: config file
-
 	rand.Seed(time.Now().UnixNano())
 
 	fmt.Println("Kagami Pre-Alpha")
 	fmt.Println("Initializing LoginServer...")
 
-	sock, err := common.NewTcpServer(fmt.Sprintf(":%d", loginport))
+	fmt.Println("Loading worlds...")
+	loadDefaultWorlds()
+
+	sock, err := common.NewTcpServer(fmt.Sprintf(":%d", consts.LoginPort))
 	if err != nil {
 		fmt.Println("Failed to create socket: ", err)
 		return
 	}
 
-	fmt.Println("Listening on port", loginport)
+	fmt.Println("Listening on port", consts.LoginPort)
 
 	for {
 		con, err := sock.Accept()

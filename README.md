@@ -1,5 +1,7 @@
 An attempt to implement a MapleStory server emulator in Go.
 This project is still extremely early, so it only does very few things at the moment.
+Most of this is put together by studying TitanMS, OdinMS and Vana so huge 
+credits to them for figuring packet structures and other stuff out, this is merely a Go implementation.
 
 Feature progress
 ============

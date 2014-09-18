@@ -27,6 +27,7 @@ import (
 	"github.com/Francesco149/kagami/common/consts"
 	"github.com/Francesco149/kagami/common/packets"
 	"github.com/Francesco149/kagami/loginserver/client"
+	"github.com/Francesco149/kagami/loginserver/worlds"
 	"github.com/Francesco149/maplelib"
 )
 
@@ -39,11 +40,23 @@ func Handle(con *client.Connection, p maplelib.Packet) (handled bool, err error)
 	}
 
 	switch header {
+	case packets.IUnknownPlsIgnore:
+		return true, nil
+
 	case packets.ILoginPassword:
 		return handleLoginPassword(con, it)
 
-	case packets.IUnknownPlsIgnore:
-		return true, nil
+	case packets.IAfterLogin:
+		return handleAfterLogin(con, it)
+
+	case packets.IServerListRequest, packets.IServerListRerequest:
+		return handleServerListRequest(con)
+
+	case packets.IServerStatusRequest:
+		return handleServerStatusRequest(con, it)
+
+	case packets.IViewAllChar:
+		return handleViewAllChar(con)
 
 	case packets.IRegisterPin:
 		return handleRegisterPin(con, it)
@@ -146,9 +159,9 @@ func handleLoginPassword(con *client.Connection, it maplelib.PacketIterator) (ha
 		} else {
 			err = con.SendPacket(packets.LoginFailed(packets.LoginNotRegistered))
 		}
-	// autoregister end}
+		// autoregister end}
 
-	// {regular login begin
+		// {regular login begin
 	} else {
 		// check ip ban
 		st, err = db.Prepare("SELECT id FROM ip_bans WHERE ip = ?")
@@ -248,28 +261,185 @@ func handleLoginPassword(con *client.Connection, it maplelib.PacketIterator) (ha
 	err = con.SendPacket(packets.AuthSuccessRequestPin(user))
 	fmt.Println(ip, "logged in")
 	fmt.Println(con)
+
+	handled = err == nil
+	return
+}
+
+// handleAfterLogin handles an after-login (pin) packet
+func handleAfterLogin(con *client.Connection, it maplelib.PacketIterator) (handled bool, err error) {
+	var pepperoni, pizza byte
+	handled = false
+
+	pepperoni, err = it.Decode1()
+	pizza, err = it.Decode1()
+	if err != nil {
+		return
+	}
+
+	if con.PlayerStatus() != client.LoggedIn {
+		err = errors.New(fmt.Sprintf(
+			"Unexpected after login packet with player status = %s",
+			con.PlayerStatusString()))
+		return
+	}
+
+	if pepperoni > 0 && pizza > 0 {
+		err = con.SendPacket(packets.PinAccepted()) // pins are for faggots
+	} else {
+		err = errors.New("Invalid pin packet when pins are unimplemented")
+	}
+
+	handled = err == nil
+	return
+}
+
+// handleServerListRequest handles a server list request packet by sending the world and channel list
+func handleServerListRequest(con *client.Connection) (handled bool, err error) {
+	handled = false
+	if con.PlayerStatus() != client.LoggedIn {
+		err = errors.New(fmt.Sprintf(
+			"Tried to request worlds with invalid player status %s",
+			con.PlayerStatus()))
+		return
+	}
+
+	err = worlds.Show(con)
+	handled = err == nil
+	return
+}
+
+// handleServerStatusRequest handles a world selection request by sending the world load
+func handleServerStatusRequest(con *client.Connection, it maplelib.PacketIterator) (handled bool, err error) {
+	handled = false
+	if con.PlayerStatus() != client.LoggedIn {
+		err = errors.New(fmt.Sprintf(
+			"Tried to select world with invalid player status %s",
+			con.PlayerStatus()))
+		return
+	}
+
+	worldId, err := it.Decode1()
+	if err != nil {
+		return
+	}
+
+	world := worlds.Get(worldId)
+
+	if world == nil {
+		err = errors.New("Selected an invalid world")
+		return
+	}
+
+	con.SetWorldId(worldId)
+
+	servstatus := uint16(packets.ServerNormal)
+
+	switch {
+	case world.PlayerLoad() == world.Conf().MaxPlayerLoad():
+		servstatus = packets.ServerFull
+
+	case world.PlayerLoad() >= (world.Conf().MaxPlayerLoad()/100)*90:
+		servstatus = packets.ServerHigh
+	}
+
+	err = con.SendPacket(packets.ServerStatus(servstatus))
+	handled = err == nil
+	return
+}
+
+// sendWorldChars returns a packet that sends the characters list for one worlds to the client
+func sendWorldChars(worldId byte, charlist []*CharData) (p maplelib.Packet) {
+	p.Encode4(0x00000000)
+	p.Encode2(packets.OAllCharlist)
+	p.Encode1(0x00)
+	p.Encode1(worldId)
+	p.Encode1(byte(len(charlist)))
+
+	// encode all characters
+	for _, char := range charlist {
+		char.Encode(p)
+	}
+
+	return
+}
+
+// handleViewAllChar sends the character list to the client
+func handleViewAllChar(con *client.Connection) (handled bool, err error) {
+	handled = false
+	if con.PlayerStatus() != client.LoggedIn {
+		err = errors.New(fmt.Sprintf(
+			"Tried to get charlist with invalid player status %s",
+			con.PlayerStatus()))
+		return
+	}
+
+	// get user's chars from the database
+	db := common.GetDB()
+	st, err := db.Prepare("SELECT * FROM characters WHERE user_id = ?")
+	res, err := st.Run(con.Id())
+	rows, err := res.GetRows()
+	if err != nil {
+		return
+	}
+
+	colworldid := res.Map("world_id")
+	charcount := uint32(0)
+	charmap := make(map[byte][]*CharData) // char list of each world mapped by world id
+
+	// loop chars in rows and append to the map
+	for _, row := range rows {
+		// get world id and make sure that it's online
+		worldId := byte(row.Int(colworldid))
+		w := worlds.Get(worldId)
+		if w == nil || !w.Connected() {
+			// ignore char as the world it's on is offline
+			continue
+		}
+
+		// append character to the map
+		var cdata *CharData
+		cdata, err = GetCharDataFromDBRow(row, res)
+		if err != nil {
+			return
+		}
+		charmap[worldId] = append(charmap[worldId], cdata)
+		charcount++ // increase valid char count
+	}
+
+	// this probabilly indicates the last character slot that will be visible
+	// <= 3 chars = 3
+	// <= 6 chars = 6
+	// <= 9 chars = 9
+	// and so on
+	unk := charcount + (3 - charcount%3)
+	con.SendPacket(packets.SendAllCharsBegin(uint32(len(charmap)), unk))
+
+	// iterate the valid characters map and send them to the user
+	for worldId, charList := range charmap {
+		con.SendPacket(sendWorldChars(worldId, charList))
+	}
+
 	return
 }
 
 // handleLoginPassword handles a register pin packet
 // pins are unused for now so the pin will be ignored
-func handleRegisterPin(con common.Connection, it maplelib.PacketIterator) (handled bool, err error) {
+func handleRegisterPin(con *client.Connection, it maplelib.PacketIterator) (handled bool, err error) {
 	handled = false
 	status, err := it.Decode1()
 	if err != nil {
 		return
 	}
 
-	handled = true
-
 	switch status {
 	case 0x00:
 		err = con.SendPacket(packets.PinAssigned())
 
 	default:
-		handled = false
 		err = errors.New(fmt.Sprintf("%d is not a valid register pin status", status))
 	}
 
+	handled = err == nil
 	return
 }

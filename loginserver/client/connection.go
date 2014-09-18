@@ -45,7 +45,7 @@ type Connection struct {
 	admin                       bool   // true if the user is an admin
 	worldid                     byte   // numeric world id
 	channel                     byte   // channel number
-	userid                      uint32 // user id in the database
+	userid                      int32  // user id in the database
 	invalidLogins               uint32 // invalid login counter
 	gmLevel                     int32  // gm level
 	charDeletePassword          uint32 // char deletion password (birthday YYYYMMDD)
@@ -87,65 +87,23 @@ func (c *Connection) String() string {
 		time.Unix(c.AccountCreationTime(), 0), c.PlayerStatusString())
 }
 
-// Admin returns whether the user is an admin or not
-func (c *Connection) Admin() bool {
-	return c.admin
-}
-
-// SetAdmin sets the client's admin status
-func (c *Connection) SetAdmin(admin bool) {
-	c.admin = admin
-}
-
-// WorldId returns the client's current world id
-func (c *Connection) WorldId() byte {
-	return c.worldid
-}
-
-// SetWorldId sets the client's current world id
-func (c *Connection) SetWorldId(worldid byte) {
-	c.worldid = worldid
-}
-
-// Channel returns the client's current channel
-func (c *Connection) Channel() byte {
-	return c.channel
-}
-
-// SetChannel sets the client's current channel
-func (c *Connection) SetChannel(channel byte) {
-	c.channel = channel
-}
-
-// Id returns the user's id
-func (c *Connection) Id() uint32 {
-	return c.userid
-}
-
-// SetId sets the user id for this connection
-func (c *Connection) SetId(id uint32) {
-	c.userid = id
-}
-
-// InvalidLogins() returns the failed login count
-func (c *Connection) InvalidLogins() uint32 {
-	return c.invalidLogins
-}
+func (c *Connection) Admin() bool             { return c.admin }
+func (c *Connection) SetAdmin(admin bool)     { c.admin = admin }
+func (c *Connection) WorldId() byte           { return c.worldid }
+func (c *Connection) SetWorldId(worldid byte) { c.worldid = worldid }
+func (c *Connection) Channel() byte           { return c.channel }
+func (c *Connection) SetChannel(channel byte) { c.channel = channel }
+func (c *Connection) Id() int32               { return c.userid }
+func (c *Connection) SetId(id int32)          { c.userid = id }
+func (c *Connection) InvalidLogins() uint32   { return c.invalidLogins }
 
 // RegisterInvalidLogin increases the invalid login counter
 func (c *Connection) RegisterInvalidLogin() {
 	c.invalidLogins++
 }
 
-// GmLevel returns the user's gm level
-func (c *Connection) GmLevel() int32 {
-	return c.gmLevel
-}
-
-// SetGmLevel sets the user's gm level
-func (c *Connection) SetGmLevel(gmLevel int32) {
-	c.gmLevel = gmLevel
-}
+func (c *Connection) GmLevel() int32           { return c.gmLevel }
+func (c *Connection) SetGmLevel(gmLevel int32) { c.gmLevel = gmLevel }
 
 // CharDeletePassword returns the player's birthday code
 func (c *Connection) CharDeletePassword() uint32 {
@@ -157,12 +115,12 @@ func (c *Connection) SetCharDeletePassword(charDeletePassword uint32) {
 	c.charDeletePassword = charDeletePassword
 }
 
-// AccountCreationTime returns the timestamp of when the account was created
+// AccountCreationTime returns the unix timestamp of when the account was created
 func (c *Connection) AccountCreationTime() int64 {
 	return c.accountCreationTime
 }
 
-// SetAccountCreationTime sets the timestamp of when the account was created
+// SetAccountCreationTime sets the unix timestamp of when the account was created
 func (c *Connection) SetAccountCreationTime(accountCreationTime int64) {
 	c.accountCreationTime = accountCreationTime
 }
@@ -179,25 +137,13 @@ func (c *Connection) SetAccountCreationTime(accountCreationTime int64) {
    AskPin = 0x0C
    NotLoggedIn = 0x0D
 */
-func (c *Connection) PlayerStatus() byte {
-	return c.status
-}
+func (c *Connection) PlayerStatus() byte { return c.status }
 
 /*
    SetPlayerStatus sets the current status of this client (logged in, offline...)
-
-   Possible values:
-   LoggedIn = 0x00
-   SetPin = 0x01
-   CheckPin = 0x04
-   SetGender = 0x0A
-   PinSelect = 0x0B
-   AskPin = 0x0C
-   NotLoggedIn = 0x0D
+   See PlayerStatus() for possible values
 */
-func (c *Connection) SetPlayerStatus(status byte) {
-	c.status = status
-}
+func (c *Connection) SetPlayerStatus(status byte) { c.status = status }
 
 func (c *Connection) PlayerStatusString() string {
 	switch c.PlayerStatus() {

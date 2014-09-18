@@ -13,14 +13,14 @@
    along with kagami. If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Package packets contains packet headers and builders for GMS v62
+// Package packets contains all packet headers GMS v62 and packet builders
+// that do not require server-specific packages
 package packets
 
 // Send packet headers
 const (
 	// common
-	OHandshake = 0x000D
-	OPing      = 0x0011
+	OPing = 0x0011
 
 	// login server
 	OLoginStatus        = 0x0000

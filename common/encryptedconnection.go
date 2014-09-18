@@ -30,6 +30,8 @@ import (
 	"github.com/Francesco149/maplelib"
 )
 
+const handshakeHeader = 0x000D
+
 // A IOError is returned when an I/O error occurs while reading/writing data from the socket
 type IOError struct {
 	bytesRead int
@@ -73,9 +75,29 @@ func (c *EncryptedConnection) renewSendTimeout() {
 	c.Conn().SetWriteDeadline(time.Now().Add(consts.ClientTimeout * time.Second))
 }
 
+// makeHandshake returns a handshake packet that must be sent UNENCRYPTED to newly connected clients
+// The initialization vectors ivsend and ivrecv are 4 bytes, any extra data will be ignored
+func makeHandshake(mapleVersion uint16, ivsend []byte,
+	ivrecv []byte, testserver bool) (p maplelib.Packet) {
+
+	testbyte := byte(8)
+	if testserver {
+		testbyte = 5
+	}
+
+	p = maplelib.NewPacket()
+	p.Encode2(handshakeHeader) // header
+	p.Encode2(mapleVersion)    // game version
+	p.Encode2(0x0000)          // dunno maybe version is a dword
+	p.Append(ivrecv[:4])
+	p.Append(ivsend[:4])
+	p.Encode1(testbyte) // 5 = test server, else 8
+	return
+}
+
 // sendHandshake sends the handshake packet with the encryption keys to the client
 func (c *EncryptedConnection) sendHandshake(isTestServer bool) error {
-	hs := packets.Handshake(consts.MapleVersion, c.SendCrypt().IV()[:4],
+	hs := makeHandshake(consts.MapleVersion, c.SendCrypt().IV()[:4],
 		c.RecvCrypt().IV()[:4], isTestServer)
 
 	c.renewSendTimeout()
@@ -110,22 +132,11 @@ func NewEncryptedConnection(con net.Conn, isTestServer bool) (c *EncryptedConnec
 	return
 }
 
-// Conn returns the connection associated with this encrypted connection
-func (c *EncryptedConnection) Conn() net.Conn {
-	return c.con
-}
+func (c *EncryptedConnection) Conn() net.Conn             { return c.con }
+func (c *EncryptedConnection) SendCrypt() *maplelib.Crypt { return &c.send }
+func (c *EncryptedConnection) RecvCrypt() *maplelib.Crypt { return &c.recv }
 
-// SendCrypt returns the send encryption key
-func (c *EncryptedConnection) SendCrypt() *maplelib.Crypt {
-	return &c.send
-}
-
-// RecvCrypt returns the recv decryption key
-func (c *EncryptedConnection) RecvCrypt() *maplelib.Crypt {
-	return &c.recv
-}
-
-// Ping pings the client
+// Ping sends a ping packet to the client and starts waiting for a pong
 func (c *EncryptedConnection) Ping() error {
 	if c.pinged {
 		return nil
