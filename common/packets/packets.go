@@ -225,6 +225,64 @@ func SendAllCharsBegin(worldcount, unk uint32) (p maplelib.Packet) {
         return
 }
 
+// RelogResponse rturns a packet that accepts a relog request
+func RelogResponse() (p maplelib.Packet) {
+        p = newEncryptedPacket(ORelogResponse)
+        p.Encode1(0x01)
+        return
+}
+
+// ConnectIp returns a server transfer packet
+func ConnectIp(ip []byte, port int16, charId int32) (p maplelib.Packet) {
+        huehuahue := make([]byte, 5)
+        p = newEncryptedPacket(OServerIP)
+        p.Encode2(0x0000)
+        p.Append(ip)
+        p.Encode2(uint16(port))
+        p.Encode4(uint32(charId))
+        p.Append(huehuahue)
+        return
+}
+
+// CharNameResponse returns a char name check response packet
+func CharNameResponse(charName string, used bool) (p maplelib.Packet) {
+        p = newEncryptedPacket(OCharNameResponse)
+        p.EncodeString(charName)
+        if used {
+                p.Encode1(0x01)
+        } else {
+                p.Encode1(0x00)        
+        }
+        return
+}
+
+// Possible statuses for DeleteCharResponse
+const (
+        DeleteOk = 0 // ok
+        DeleteFail = 1 // failed to delete character
+        DeleteInvalidCode = 12 // invalid birthday
+)
+
+// DeleteCharResponse returns a char delete response packet
+// state:
+// DeleteOk = 0 // ok
+// DeleteFail = 1 // failed to delete character
+// DeleteInvalidCode = 12 // invalid birthday
+func DeleteCharResponse(id int32, state byte) (p maplelib.Packet) {
+        p = newEncryptedPacket(ODeleteCharResponse)
+        p.Encode4(uint32(id))
+        p.Encode1(state)
+        return
+}
+
+// SetGenderDone returns a packet response for a set gender request
+func SetGenderDone(gender byte) (p maplelib.Packet) {
+        p = newEncryptedPacket(OGenderDone)
+        p.Encode1(gender)
+        p.Encode1(0x01)
+        return
+}
+
 // PinAssigned returns a packet that tells the client that the pin has successfully been assigned
 func PinAssigned() (p maplelib.Packet) {
 	p = newEncryptedPacket(OPinAssigned)

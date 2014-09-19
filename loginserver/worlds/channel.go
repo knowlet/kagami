@@ -17,11 +17,11 @@ package worlds
 
 // A Channel holds information about a single channel, such as the port and the population
 type Channel struct {
-	port       uint32
+	port       int16
 	population int32
 }
 
-func (c *Channel) Port() uint32            { return c.port }
-func (c *Channel) SetPort(port uint32)     { c.port = port }
+func (c *Channel) Port() int16             { return c.port }
+func (c *Channel) SetPort(port int16)      { c.port = port }
 func (c *Channel) Population() int32       { return c.population }
 func (c *Channel) SetPopulation(pop int32) { c.population = pop }

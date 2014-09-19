@@ -59,5 +59,7 @@ const (
 	IPickAllChar         = 0x000E // unused, idk what this does
 	ISetGender           = 0x0008
 	IRegisterPin         = 0x000A
-	IUnknownPlsIgnore    = 0x001A // this gets spammed while on login screen and I dunno why
+	IGuestLogin          = 0x0002
+	IUnknownPlsIgnore1   = 0x001A // this gets spammed while on login screen and I dunno why
+	IUnknownPlsIgnore2   = 0x000F 
 )

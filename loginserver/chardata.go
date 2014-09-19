@@ -84,8 +84,8 @@ type CharData struct {
 	fame          int16
 	mapp          int32
 	pos           int8
-	gender        byte
-	skin          byte
+	gender        int8
+	skin          int8
 	face          int32
 	hair          int32
 	worldRank     uint32
@@ -117,39 +117,39 @@ func (c *CharData) EncodeStats(p maplelib.Packet) {
 		p.Encode1(0x00)
 	}
 
-	p.Encode1(c.gender)
-	p.Encode1(c.skin)
-	p.Encode4(uint32(c.face))
-	p.Encode4(uint32(c.hair))
+	p.Encode1s(c.gender)
+	p.Encode1s(c.skin)
+	p.Encode4s(c.face)
+	p.Encode4s(c.hair)
 	p.Append(huehuehue)
 	p.Encode1(c.level)
-	p.Encode2(uint16(c.job))
-	p.Encode2(uint16(c.str))
-	p.Encode2(uint16(c.dex))
-	p.Encode2(uint16(c.intt))
-	p.Encode2(uint16(c.luk))
-	p.Encode2(uint16(c.hp))
-	p.Encode2(uint16(c.maxhp))
-	p.Encode2(uint16(c.mp))
-	p.Encode2(uint16(c.maxmp))
-	p.Encode2(uint16(c.ap))
-	p.Encode2(uint16(c.sp))
-	p.Encode4(uint32(c.exp))
-	p.Encode2(uint16(c.fame))
+	p.Encode2s(c.job)
+	p.Encode2s(c.str)
+	p.Encode2s(c.dex)
+	p.Encode2s(c.intt)
+	p.Encode2s(c.luk)
+	p.Encode2s(c.hp)
+	p.Encode2s(c.maxhp)
+	p.Encode2s(c.mp)
+	p.Encode2s(c.maxmp)
+	p.Encode2s(c.ap)
+	p.Encode2s(c.sp)
+	p.Encode4s(c.exp)
+	p.Encode2s(c.fame)
 	p.Encode4(0x00000000) // married flag TODO
-	p.Encode4(uint32(c.mapp))
-	p.Encode1(byte(c.pos)) // initial spawnpoint
+	p.Encode4s(c.mapp)
+	p.Encode1s(c.pos) // initial spawnpoint
 	p.Encode4(0x00000000)
 	return
 }
 
 // EncodeEquips serializes the character's equips to a packet
 func (c *CharData) EncodeEquips(p maplelib.Packet) {
-	p.Encode1(c.gender) // yes it repeats gender, skin, face, hair and idk why
-	p.Encode1(c.skin)
-	p.Encode4(uint32(c.face))
+	p.Encode1s(c.gender) // yes it repeats gender, skin, face, hair and idk why
+	p.Encode1s(c.skin)
+	p.Encode4s(c.face)
 	p.Encode1(0x01)
-	p.Encode4(uint32(c.hair))
+	p.Encode4s(c.hair)
 
 	// I'm not sure how this all works but it's some logic to encode
 	// equips in such a way that the client can determine which ones are
@@ -186,9 +186,9 @@ func (c *CharData) EncodeEquips(p maplelib.Packet) {
 
 			if i == consts.EquipWeapon && equipmap[i][1] > 0 {
 				// normal weapons
-				p.Encode4(uint32(equipmap[i][1]))
+				p.Encode4s(equipmap[i][1])
 			} else {
-				p.Encode4(uint32(equipmap[i][0]))
+				p.Encode4s(equipmap[i][0])
 			}
 		}
 	}
@@ -199,12 +199,12 @@ func (c *CharData) EncodeEquips(p maplelib.Packet) {
 	for i := byte(0); i < consts.EquippedSlots; i++ {
 		if equipmap[i][1] > 0 && i != consts.EquipWeapon {
 			p.Encode1(i)
-			p.Encode4(uint32(equipmap[i][1]))
+			p.Encode4s(equipmap[i][1])
 		}
 	}
 
 	p.Encode1(0xFF)
-	p.Encode4(uint32(equipmap[consts.EquipWeapon][0])) // cash weapon
+	p.Encode4s(equipmap[consts.EquipWeapon][0]) // cash weapon
 
 	ayylmao := make([]byte, 12)
 	p.Append(ayylmao)
@@ -287,8 +287,8 @@ func GetCharDataFromDBRow(row mysql.Row, res mysql.Result) (data *CharData, err 
 		fame:          int16(row.Int(colfame)),
 		mapp:          int32(row.Int(colmap)),
 		pos:           int8(row.Int(colpos)),
-		gender:        byte(row.Int(colgender)),
-		skin:          byte(row.Int(colskin)),
+		gender:        int8(row.Int(colgender)),
+		skin:          int8(row.Int(colskin)),
 		face:          int32(row.Int(colface)),
 		hair:          int32(row.Int(colhair)),
 		worldRank:     charworldrank,

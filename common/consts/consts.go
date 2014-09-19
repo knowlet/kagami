@@ -114,7 +114,61 @@ const (
         EquipBelt = 50          
 )
 
-// Worlds ----------------------------------------------------------------------
+// Sex Id's
+const (
+        SexMale = 0
+        SexFemale = 1
+)
+
+// BeginnerFaces contains all allowed beginner faces for each sex
+// it is mapped by id so you can just check if the map contains the id
+var BeginnerFaces = [2]map[int32]bool{
+        {20000: true, 20001: true, 20002: true}, 
+        {21000: true, 21001: true, 21002: true}, 
+}
+
+// BeginnerHairstyles contains all allowed beginner hairstyles for each sex
+// it is mapped by id so you can just check if the map contains the id
+var BeginnerHairstyles = [2]map[int32]bool{
+        {30000: true, 30020: true, 30030: true},   
+        {31000: true, 31040: true, 31050: true}, 
+}
+
+// BeginnerTops contains all allowed beginner tops for each sex
+// it is mapped by id so you can just check if the map contains the id
+var BeginnerTops = [2]map[int32]bool{
+        {1040002: true, 1040006: true, 1040010: true},    
+        {1041002: true, 1041006: true, 1041010: true}, 
+}
+
+// BeginnerBottoms contains all allowed beginner bottoms for each sex
+// it is mapped by id so you can just check if the map contains the id
+var BeginnerBottoms = [2]map[int32]bool{
+        {1060006: true, 1060002: true},  
+        {1061002: true, 1061008: true}, 
+}
+
+// Beginner skin color lower and upper bounds
+const (
+        BeginnerMinSkinColor = 0 
+        BeginnerMaxSkinColor = 3
+)
+
+// BeginnerWeapons contains a list of allowed beginner weapons
+// it is mapped by id so you can just check if the map contains the id
+var BeginnerWeapons = map[int32]bool{1302000: true, 1322005: true, 1312004: true}
+
+// BeginnerShoes contains a list of allowed beginner shoes
+// it is mapped by id so you can just check if the map contains the id
+var BeginnerShoes = map[int32]bool{1072001: true, 1072005: true, 1072037: true, 1072038: true}
+
+// BeginnerHairColors contains a list of allowed beginner hair colors
+// it is mapped by id so you can just check if the map contains the id
+var BeginnerHairColors = map[int32]bool{0: true, 1: true, 2: true, 3: true, 7: true}
+
+const BeginnersGuidebook = 4161001
+
+// Default Worlds --------------------------------------------------------------
 const WorldCount = 1 // WorldCount is the number of worlds that will connect to the loginserver
 
 var WorldName = [WorldCount]string{"Scania"}     // WorldName contains a list of the world names

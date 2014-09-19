@@ -13,6 +13,8 @@
    along with kagami. If not, see <http://www.gnu.org/licenses/>.
 */
 
+-- This database is heavy based on MapleStory Vana
+
 CREATE TABLE `accounts` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `username` char(12) NOT NULL,
@@ -77,7 +79,7 @@ CREATE TABLE `characters` (
   KEY `user_id` (`user_id`),
   KEY `world_id` (`world_id`),
   KEY `name` (`name`),
-  CONSTRAINT `characters_FOREIGN1` FOREIGN KEY (`user_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE
+  CONSTRAINT `characters_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `items` (
@@ -89,5 +91,15 @@ CREATE TABLE `items` (
   `world_id` int(11) NOT NULL,
   `item_id` int(11) NOT NULL,
   PRIMARY KEY (`character_id`,`inv`,`slot`,`location`),
-  CONSTRAINT `items_FOREIGN1` FOREIGN KEY (`character_id`) REFERENCES `characters` (`character_id`) ON DELETE CASCADE
+  CONSTRAINT `items_ibfk_1` FOREIGN KEY (`character_id`) REFERENCES `characters` (`character_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `storage` (
+  `user_id` int(11) NOT NULL,
+  `world_id` int(11) NOT NULL,
+  `slots` smallint(6) NOT NULL,
+  `mesos` int(11) NOT NULL,
+  `char_slots` int(11) NOT NULL,
+  PRIMARY KEY (`user_id`,`world_id`),
+  CONSTRAINT `storage_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

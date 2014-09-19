@@ -56,7 +56,7 @@ func showWorld(w *World) (p maplelib.Packet) {
 
 		ch := w.Channel(i)
 		if ch != nil { // append channel population
-			p.Encode4(uint32(ch.Population()))
+			p.Encode4s(ch.Population())
 		} else { // channel doesn't exist / crashed
 			p.Encode4(0x00000000)
 		}
