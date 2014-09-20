@@ -15,32 +15,20 @@
 
 package common
 
-import (
-	"github.com/Francesco149/kagami/common/packets"
-	"github.com/Francesco149/maplelib"
-)
+import "fmt"
 
-// Handle handles packets that are common to all three servers
-func Handle(con Connection, p maplelib.Packet) (handled bool, err error) {
-	it := p.Begin()
-	header, err := it.Decode2()
+// Connect waits for and connects to a tcp server on a given port.
+// handler is the function that will handle this connection's packets, see PacketHandler for the signature.
+// makeConnection is a connection factory function that must return a connection that implements common.Connection.
+// Once a connection is estabilished, a loop will run to handle its packets, blocking the current thread.
+func Connect(name, ipport string, handler PacketHandler, makeConnection ConnectionFactory) {
+	fmt.Println("Connecting to", name, ipport)
+	con, err := Dial(ipport)
 	if err != nil {
-		return false, err
+		fmt.Println("Failed to connect: ", err)
+		return
 	}
 
-	switch {
-	case
-		header == packets.IPong,
-		// this can only happen when the connection is a client in inter-server connections
-		con.IsClient() && header == packets.OPing:
-		return handlePong(con)
-	}
-
-	return false, nil // forward packet to next handler
-}
-
-func handlePong(con Connection) (handled bool, err error) {
-	err = con.OnPong()
-	handled = (err == nil)
-	return
+	fmt.Println("Connected to", name, con.RemoteAddr())
+	HandleLoop(name, con, handler, makeConnection, nil)
 }

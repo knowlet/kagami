@@ -18,11 +18,12 @@ package interserver
 
 // Inter-server headers
 const (
-        IOAuth = 0x0001 
-        IOConnectingToChannel = 0x0002
+	IOAuth                = 0x1001
+	IOConnectingToChannel = 0x1002
+	IOWorldConnect        = 0x1003
 )
 
 // Inter-server sync headers
 const (
-        IOSyncCharacterCreated = 0x8001
+	IOSyncCharacterCreated = 0x8801
 )

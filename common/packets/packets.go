@@ -20,15 +20,21 @@ import "github.com/Francesco149/maplelib"
 // NewEncryptedPacket creates a new packet and appends a placeholder for
 // the encrypted header plus the given header to it
 func NewEncryptedPacket(header uint16) (p maplelib.Packet) {
-    p = maplelib.NewPacket()
-    p.Encode4(0x00000000) // placeholder for the encrypted header
-    p.Encode2(header)
-    return
+	p = maplelib.NewPacket()
+	p.Encode4(0x00000000) // placeholder for the encrypted header
+	p.Encode2(header)
+	return
 }
 
 // Ping returns a ping packet
 func Ping() (p maplelib.Packet) {
 	p = NewEncryptedPacket(OPing)
+	return
+}
+
+// Pong returns a pong packet
+func Pong() (p maplelib.Packet) {
+	p = NewEncryptedPacket(IPong)
 	return
 }
 
@@ -218,49 +224,49 @@ func ServerStatus(status uint16) (p maplelib.Packet) {
 // SendAllCharsBegin returns a packet that sends the beginning of a character list packet
 // unk must be charcount + (3 - charcount % 3)
 func SendAllCharsBegin(worldcount, unk uint32) (p maplelib.Packet) {
-        p = NewEncryptedPacket(OAllCharlist)
-        p.Encode1(0x01)
-        p.Encode4(worldcount)
-        p.Encode4(unk)
-        return
+	p = NewEncryptedPacket(OAllCharlist)
+	p.Encode1(0x01)
+	p.Encode4(worldcount)
+	p.Encode4(unk)
+	return
 }
 
 // RelogResponse rturns a packet that accepts a relog request
 func RelogResponse() (p maplelib.Packet) {
-        p = NewEncryptedPacket(ORelogResponse)
-        p.Encode1(0x01)
-        return
+	p = NewEncryptedPacket(ORelogResponse)
+	p.Encode1(0x01)
+	return
 }
 
 // ConnectIp returns a server transfer packet
 func ConnectIp(ip []byte, port int16, charId int32) (p maplelib.Packet) {
-        huehuahue := make([]byte, 5)
-        p = NewEncryptedPacket(OServerIP)
-        p.Encode2(0x0000)
-        p.Append(ip)
-        p.Encode2(uint16(port))
-        p.Encode4(uint32(charId))
-        p.Append(huehuahue)
-        return
+	huehuahue := make([]byte, 5)
+	p = NewEncryptedPacket(OServerIP)
+	p.Encode2(0x0000)
+	p.Append(ip)
+	p.Encode2(uint16(port))
+	p.Encode4(uint32(charId))
+	p.Append(huehuahue)
+	return
 }
 
 // CharNameResponse returns a char name check response packet
 func CharNameResponse(charName string, used bool) (p maplelib.Packet) {
-        p = NewEncryptedPacket(OCharNameResponse)
-        p.EncodeString(charName)
-        if used {
-                p.Encode1(0x01)
-        } else {
-                p.Encode1(0x00)        
-        }
-        return
+	p = NewEncryptedPacket(OCharNameResponse)
+	p.EncodeString(charName)
+	if used {
+		p.Encode1(0x01)
+	} else {
+		p.Encode1(0x00)
+	}
+	return
 }
 
 // Possible statuses for DeleteCharResponse
 const (
-        DeleteOk = 0 // ok
-        DeleteFail = 1 // failed to delete character
-        DeleteInvalidCode = 12 // invalid birthday
+	DeleteOk          = 0  // ok
+	DeleteFail        = 1  // failed to delete character
+	DeleteInvalidCode = 12 // invalid birthday
 )
 
 // DeleteCharResponse returns a char delete response packet
@@ -269,18 +275,18 @@ const (
 // DeleteFail = 1 // failed to delete character
 // DeleteInvalidCode = 12 // invalid birthday
 func DeleteCharResponse(id int32, state byte) (p maplelib.Packet) {
-        p = NewEncryptedPacket(ODeleteCharResponse)
-        p.Encode4(uint32(id))
-        p.Encode1(state)
-        return
+	p = NewEncryptedPacket(ODeleteCharResponse)
+	p.Encode4(uint32(id))
+	p.Encode1(state)
+	return
 }
 
 // SetGenderDone returns a packet response for a set gender request
 func SetGenderDone(gender byte) (p maplelib.Packet) {
-        p = NewEncryptedPacket(OGenderDone)
-        p.Encode1(gender)
-        p.Encode1(0x01)
-        return
+	p = NewEncryptedPacket(OGenderDone)
+	p.Encode1(gender)
+	p.Encode1(0x01)
+	return
 }
 
 // PinAssigned returns a packet that tells the client that the pin has successfully been assigned

@@ -51,6 +51,7 @@ func loadDefaultWorlds() {
 		world.SetConf(config)
 		world.SetId(id)
 		world.SetPort(consts.WorldListenPort[i])
+		worlds.Add(world)
 	}
 }
 
@@ -66,14 +67,36 @@ func main() {
 	// accept interserver world connections in a separate thread
 	go common.Accept("world", consts.LoginInterserverPort,
 		func(con common.Connection, p maplelib.Packet) (bool, error) {
-			scon, ok := con.(*common.InterserverConnection)
+			scon, ok := con.(*worlds.Connection)
 			if !ok {
 				return false, errors.New("World handler failed type assertion")
 			}
 			return HandleInter(scon, p)
 		},
 		func(con net.Conn) common.Connection {
-			return common.NewInterserverConnection(con, consts.InterServerPassword)
+			return worlds.NewConnection(con, consts.InterServerPassword)
+		},
+		func(con common.Connection) {
+			scon, ok := con.(*worlds.Connection)
+			if !ok {
+				panic(errors.New("World handler failed type assertion on disconnect"))
+			}
+			deleteworldid := scon.WorldId()
+
+			if deleteworldid == -1 {
+				return
+			}
+
+			fmt.Println("Removing world", deleteworldid)
+			deleteworld := worlds.Get(deleteworldid)
+
+			if deleteworld == nil {
+				fmt.Println("Could not find world", deleteworldid)
+				return
+			}
+
+			deleteworld.SetConnected(false)
+			deleteworld.ClearChannels()
 		})
 
 	// accept client connections in this thread
@@ -87,5 +110,6 @@ func main() {
 		},
 		func(con net.Conn) common.Connection {
 			return client.NewConnection(con, false)
-		})
+		},
+		nil)
 }

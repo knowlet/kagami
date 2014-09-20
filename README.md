@@ -9,14 +9,14 @@ Feature progress
 * Packet decryption/encryption - [done](http://hnng.moe/f/4m)
 * Login - [done (video)](http://hnng.moe/f/5N)
 * MySQL - [done](http://www.hnng.moe/f/5H)
-* World / Channel Selection - WIP
+* World / Channel Selection - [done (video)](http://hnng.moe/f/6N)
 * Character Selection / Creation / Deletion - WIP
 * Handling Bans - [done](http://www.hnng.moe/f/5Q)
 * Getting in game - WIP
 
 Getting started
 ============
-First of all, you need to install [maplelib](https://github.com/Francesco149/maplelib) and [mymysql](https://github.com/ziutek/mymysql).
+First of all, you need to install [maplelib](https://github.com/Francesco149/maplelib) and  [mymysql](https://github.com/ziutek/mymysql).
 
 Once you've done that, all that's left is to clone the repository.
 Make sure that you have git and go installed and run
@@ -39,10 +39,11 @@ NOTE: the database structure will change very often at the current stage of the 
     
 Running the server
 ============
-For now only the loginserver is present, so all you have to do is
+To compile the server, all you have to do is:
 
-    go install github.com/Francesco149/kagami/loginserver
-    loginserver
+    go install github.com/Francesco149/kagami/...
+
+And then simply run loginserver and worldserver in your $GOPATH/bin directory.
     
 Documentation
 ============

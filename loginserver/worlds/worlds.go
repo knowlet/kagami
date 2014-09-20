@@ -17,15 +17,21 @@
 // worlds that are currently connected to the login server
 package worlds
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 import (
+	"github.com/Francesco149/kagami/common/interserver"
 	"github.com/Francesco149/kagami/common/packets"
 	"github.com/Francesco149/kagami/loginserver/client"
 	"github.com/Francesco149/maplelib"
 )
 
-var worlds = make(map[byte]*World)
+// TODO: make this thread safe?
+
+var worlds = make(map[int8]*World)
 
 // Add adds the given world to the world list
 func Add(w *World) {
@@ -33,8 +39,48 @@ func Add(w *World) {
 }
 
 // Get returns the world associated with the given id
-func Get(worldId byte) *World {
+func Get(worldId int8) *World {
 	return worlds[worldId]
+}
+
+// worldConnect returns a world connect inter-server packet
+func worldConnect(w *World) (p maplelib.Packet) {
+	p = packets.NewEncryptedPacket(interserver.IOWorldConnect)
+	p.Encode1s(w.Id())
+	p.Encode2s(w.Port())
+	w.Conf().Encode(&p)
+	return
+}
+
+// AddWorldServer assigns a world to the given world server connection
+func AddWorldServer(con *Connection) error {
+	var bindworld *World = nil
+	var bindworldid int8 = -1
+
+	for _, world := range worlds {
+		if !world.Connected() { // we need to find a world that still isn't connected
+			bindworld = world
+			break
+		}
+	}
+
+	if bindworld == nil { // no more worlds available
+		con.SendPacket(interserver.NoMoreWorlds())
+		return errors.New("No more worlds to assign.")
+	}
+
+	// assign world to conenction
+	bindworldid = bindworld.Id()
+	con.SetWorldId(bindworldid)
+	bindworld.SetWorldCon(con)
+	bindworld.SetConnected(true)
+
+	err := con.SendPacket(worldConnect(bindworld))
+	if err != nil {
+		return err
+	}
+	fmt.Println(con.Conn().RemoteAddr(), "assigned to world", bindworldid)
+	return nil
 }
 
 // showWorld returns a packet to send world data to a client for the world list
@@ -42,7 +88,7 @@ func Get(worldId byte) *World {
 func showWorld(w *World) (p maplelib.Packet) {
 	p.Encode4(0x00000000)
 	p.Encode2(packets.OServerList)
-	p.Encode1(w.Id())
+	p.Encode1s(w.Id())
 	p.EncodeString(fmt.Sprintf("%s World %d", w.Conf().Name(), w.Id()))
 	p.Encode1(w.Conf().Ribbon())
 	p.EncodeString(w.Conf().EventMsg())
@@ -54,15 +100,15 @@ func showWorld(w *World) (p maplelib.Packet) {
 	for i := byte(0); i < w.Conf().MaxChannels(); i++ {
 		p.EncodeString(fmt.Sprintf("%s World %d-%d", w.Conf().Name(), w.Id(), i+1))
 
-		ch := w.Channel(i)
+		ch := w.Channel(int8(i))
 		if ch != nil { // append channel population
 			p.Encode4s(ch.Population())
 		} else { // channel doesn't exist / crashed
 			p.Encode4(0x00000000)
 		}
 
-		p.Encode1(w.Id())
-		p.Encode2(uint16(i)) // index on the server list?
+		p.Encode1s(w.Id())
+		p.Encode2(uint16(i))
 	}
 
 	p.Encode2(0x0000)

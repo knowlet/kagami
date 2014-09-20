@@ -16,22 +16,29 @@
 package interserver
 
 import (
-        "github.com/Francesco149/kagami/common/packets"
-        "github.com/Francesco149/maplelib"
+	"github.com/Francesco149/kagami/common/packets"
+	"github.com/Francesco149/maplelib"
 )
 
 // Auth generates an inter-server authentication packet
 func Auth(passwd string) (p maplelib.Packet) {
-        p = packets.NewEncryptedPacket(IOAuth)
-        p.EncodeString(passwd)
-        return
+	p = packets.NewEncryptedPacket(IOAuth)
+	p.EncodeString(passwd)
+	return
 }
 
 // ConnectingToChannel notifies the world server that we're connecting to a channel
-func ConnectingToChannel(channel byte, charId int32, ip []byte) (p maplelib.Packet) {
-        p = packets.NewEncryptedPacket(IOConnectingToChannel)
-        p.Encode1(channel)
-        p.Encode4s(charId)
-        p.Append(ip)
-        return
+func ConnectingToChannel(channel int8, charId int32, ip []byte) (p maplelib.Packet) {
+	p = packets.NewEncryptedPacket(IOConnectingToChannel)
+	p.Encode1s(channel)
+	p.Encode4s(charId)
+	p.Append(ip)
+	return
+}
+
+// NoMoreWorlds notifies a world server that there are no more worlds available to handle
+func NoMoreWorlds() (p maplelib.Packet) {
+	p = packets.NewEncryptedPacket(IOWorldConnect)
+	p.Encode1s(-1)
+	return
 }

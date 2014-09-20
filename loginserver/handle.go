@@ -352,7 +352,7 @@ func handleServerStatusRequest(con *client.Connection, it maplelib.PacketIterato
 		return
 	}
 
-	worldId, err := it.Decode1()
+	worldId, err := it.Decode1s()
 	if err != nil {
 		return
 	}
@@ -384,10 +384,10 @@ func handleServerStatusRequest(con *client.Connection, it maplelib.PacketIterato
 
 // sendWorldAllChars returns a packet that sends the characters list for one world to the client
 // when "show all chars" has been requested
-func sendWorldAllChars(worldId byte, charlist []*CharData) (p maplelib.Packet) {
+func sendWorldAllChars(worldId int8, charlist []*CharData) (p maplelib.Packet) {
 	p = packets.NewEncryptedPacket(packets.OAllCharlist)
 	p.Encode1(0x00)
-	p.Encode1(worldId)
+	p.Encode1s(worldId)
 	p.Encode1(byte(len(charlist)))
 
 	// encode all characters
@@ -419,12 +419,12 @@ func handleViewAllChar(con *client.Connection) (handled bool, err error) {
 
 	colworldid := res.Map("world_id")
 	charcount := uint32(0)
-	charmap := make(map[byte][]*CharData) // char list of each world mapped by world id
+	charmap := make(map[int8][]*CharData) // char list of each world mapped by world id
 
 	// loop chars in rows and append to the map
 	for _, row := range rows {
 		// get world id and make sure that it's online
-		worldId := byte(row.Int(colworldid))
+		worldId := int8(row.Int(colworldid))
 		w := worlds.Get(worldId)
 		if w == nil || !w.Connected() {
 			// ignore char as the world it's on is offline
@@ -499,8 +499,8 @@ func handleCharlistRequest(con *client.Connection, it maplelib.PacketIterator) (
 	}
 
 	// get world / channel from recv
-	clientWorldId, err := it.Decode1()
-	channelId, err := it.Decode1()
+	clientWorldId, err := it.Decode1s()
+	channelId, err := it.Decode1s()
 	if err != nil {
 		return
 	}

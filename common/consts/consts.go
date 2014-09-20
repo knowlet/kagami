@@ -26,9 +26,9 @@ const MySQLPassword = "testing"    // MySQLPassword is the MySQL password
 const MySQLHost = "127.0.0.1:3306" // MySQLHost contains the ip:port of the MySQL database
 const MySQLDB = "my_kagami"        // MySQLDB contains the name of the used MySQL database
 
-const LoginPort = 8484 // Loginport is the port the Login Server will listen on
+const LoginPort = 8484            // Loginport is the port the Login Server will listen on
 const LoginInterserverPort = 8485 // LoginInterserverPort is the port the Login Server will listen on for inter-server connections
-const LoginIp = "127.0.0.1" // LoginIp is the ip of the loginserver for inter-server connections
+const LoginIp = "127.0.0.1"       // LoginIp is the ip of the loginserver for inter-server connections
 
 const InterServerPassword = "topfuckingkek" // The internal password that will be used to do inter-server communication
 
@@ -51,109 +51,109 @@ const InventoryTypes = 5 // InventoryTypes is the number of different inventorie
 
 // Inventory slots
 const (
-        EquipInventory = 1 
-        UseInventory = 2 
-        SetupInventory = 3 
-        EtcInventory = 4 
-        CashInventory = 5 
+	EquipInventory = 1
+	UseInventory   = 2
+	SetupInventory = 3
+	EtcInventory   = 4
+	CashInventory  = 5
 )
 
-// this should be how many different equip slots there are but I'm not sure why 
+// this should be how many different equip slots there are but I'm not sure why
 // it's 51 instead of 50
 const EquippedSlots = 51
 
 // Equip slots
 const (
-        EquipHelm = 1
-        EquipFace = 2
-        EquipEye = 3
-        EquipEarring = 4
-        EquipTop = 5
-        EquipBottom = 6
-        EquipShoe = 7
-        EquipGlove = 8
-        EquipCape = 9
-        EquipShield = 10
-        EquipWeapon = 11
-        EquipRing1 = 12
-        EquipRing2 = 13
-        EquipPetEquip1 = 14
-        EquipRing3 = 15
-        EquipRing4 = 16
-        EquipPendant = 17
-        EquipMount = 18
-        EquipSaddle = 19
-        EquipPetCollar = 20
-        EquipPetLabelRing1 = 21
-        EquipPetItemPouch1 = 22
-        EquipPetMesoMagnet1 = 23
-        EquipPetAutoHp = 24
-        EquipPetAutoMp = 25
-        EquipPetWingBoots1 = 26
-        EquipPetBinoculars1 = 27
-        EquipPetMagicScales1 = 28
-        EquipPetQuoteRing1 = 29
-        EquipPetEquip2 = 30
-        EquipPetLabelRing2 = 31
-        EquipPetQuoteRing2 = 32
-        EquipPetItemPouch2 = 33
-        EquipPetMesoMagnet2 = 34
-        EquipPetWingBoots2 = 35
-        EquipPetBinoculars2 = 36
-        EquipPetMagicScales2 = 37
-        EquipPetEquip3 = 38
-        EquipPetLabelRing3 = 39
-        EquipPetQuoteRing3 = 40
-        EquipPetItemPouch3 = 41
-        EquipPetMesoMagnet3 = 42
-        EquipPetWingBoots3 = 43
-        EquipPetBinoculars3 = 44
-        EquipPetMagicScales3 = 45
-        EquipPetItemIgnore1 = 46
-        EquipPetItemIgnore2 = 47
-        EquipPetItemIgnore3 = 48
-        EquipMedal = 49
-        EquipBelt = 50          
+	EquipHelm            = 1
+	EquipFace            = 2
+	EquipEye             = 3
+	EquipEarring         = 4
+	EquipTop             = 5
+	EquipBottom          = 6
+	EquipShoe            = 7
+	EquipGlove           = 8
+	EquipCape            = 9
+	EquipShield          = 10
+	EquipWeapon          = 11
+	EquipRing1           = 12
+	EquipRing2           = 13
+	EquipPetEquip1       = 14
+	EquipRing3           = 15
+	EquipRing4           = 16
+	EquipPendant         = 17
+	EquipMount           = 18
+	EquipSaddle          = 19
+	EquipPetCollar       = 20
+	EquipPetLabelRing1   = 21
+	EquipPetItemPouch1   = 22
+	EquipPetMesoMagnet1  = 23
+	EquipPetAutoHp       = 24
+	EquipPetAutoMp       = 25
+	EquipPetWingBoots1   = 26
+	EquipPetBinoculars1  = 27
+	EquipPetMagicScales1 = 28
+	EquipPetQuoteRing1   = 29
+	EquipPetEquip2       = 30
+	EquipPetLabelRing2   = 31
+	EquipPetQuoteRing2   = 32
+	EquipPetItemPouch2   = 33
+	EquipPetMesoMagnet2  = 34
+	EquipPetWingBoots2   = 35
+	EquipPetBinoculars2  = 36
+	EquipPetMagicScales2 = 37
+	EquipPetEquip3       = 38
+	EquipPetLabelRing3   = 39
+	EquipPetQuoteRing3   = 40
+	EquipPetItemPouch3   = 41
+	EquipPetMesoMagnet3  = 42
+	EquipPetWingBoots3   = 43
+	EquipPetBinoculars3  = 44
+	EquipPetMagicScales3 = 45
+	EquipPetItemIgnore1  = 46
+	EquipPetItemIgnore2  = 47
+	EquipPetItemIgnore3  = 48
+	EquipMedal           = 49
+	EquipBelt            = 50
 )
 
 // Sex Id's
 const (
-        SexMale = 0
-        SexFemale = 1
+	SexMale   = 0
+	SexFemale = 1
 )
 
 // BeginnerFaces contains all allowed beginner faces for each sex
 // it is mapped by id so you can just check if the map contains the id
 var BeginnerFaces = [2]map[int32]bool{
-        {20000: true, 20001: true, 20002: true}, 
-        {21000: true, 21001: true, 21002: true}, 
+	{20000: true, 20001: true, 20002: true},
+	{21000: true, 21001: true, 21002: true},
 }
 
 // BeginnerHairstyles contains all allowed beginner hairstyles for each sex
 // it is mapped by id so you can just check if the map contains the id
 var BeginnerHairstyles = [2]map[int32]bool{
-        {30000: true, 30020: true, 30030: true},   
-        {31000: true, 31040: true, 31050: true}, 
+	{30000: true, 30020: true, 30030: true},
+	{31000: true, 31040: true, 31050: true},
 }
 
 // BeginnerTops contains all allowed beginner tops for each sex
 // it is mapped by id so you can just check if the map contains the id
 var BeginnerTops = [2]map[int32]bool{
-        {1040002: true, 1040006: true, 1040010: true},    
-        {1041002: true, 1041006: true, 1041010: true}, 
+	{1040002: true, 1040006: true, 1040010: true},
+	{1041002: true, 1041006: true, 1041010: true},
 }
 
 // BeginnerBottoms contains all allowed beginner bottoms for each sex
 // it is mapped by id so you can just check if the map contains the id
 var BeginnerBottoms = [2]map[int32]bool{
-        {1060006: true, 1060002: true},  
-        {1061002: true, 1061008: true}, 
+	{1060006: true, 1060002: true},
+	{1061002: true, 1061008: true},
 }
 
 // Beginner skin color lower and upper bounds
 const (
-        BeginnerMinSkinColor = 0 
-        BeginnerMaxSkinColor = 3
+	BeginnerMinSkinColor = 0
+	BeginnerMaxSkinColor = 3
 )
 
 // BeginnerWeapons contains a list of allowed beginner weapons
@@ -175,7 +175,7 @@ const WorldCount = 1 // WorldCount is the number of worlds that will connect to 
 
 var WorldName = [WorldCount]string{"Scania"}     // WorldName contains a list of the world names
 var WorldChannelCount = [WorldCount]byte{19}     // WorldChannelCount contains a list of the channel count for each world
-var WorldId = [WorldCount]byte{0}                // WorldId contains a list of the world id's
+var WorldId = [WorldCount]int8{0}                // WorldId contains a list of the world id's
 var WorldRibbon = [WorldCount]byte{0}            // WorldRibbon contains a list of each world's ribbon. 0 = None, 1 = E, 2 = N, 3 = H
 var WorldDefaultGMChat = [WorldCount]bool{false} // WorldDefaultGMChat contains a list of each world's GM chat enabled flag
 
@@ -190,13 +190,13 @@ var WorldDefaultStorageSlots = [WorldCount]byte{4} // WorldDefaultStorageSlots i
 var WorldMaxStats = [WorldCount]uint16{999}        // WorldMaxStats is a list of each world's stat limit
 var WorldMaxMultiLevel = [WorldCount]byte{1}       // WorldMaxMultiLevel is a list of each world's max multiple level gain
 
-var WorldListenPort = [WorldCount]uint32{7100} // WorldListenPort is a list of each world's listen port
+var WorldListenPort = [WorldCount]int16{7100} // WorldListenPort is a list of each world's listen port
 
 // WorldEventMessage is a list of each world's event message
-var WorldEventMessage = [WorldCount]string{"Stupid fucking hamster face (´・ω・`)"}
+var WorldEventMessage = [WorldCount]string{"Top fucking kek"}
 
 // WorldScrollingHeader is a list of each world's scrolling header message
-var WorldScrollingHeader = [WorldCount]string{"Stupid fucking hamster face (´・ω・`)"}
+var WorldScrollingHeader = [WorldCount]string{"Totsugeki~"}
 
 var WorldMaxPlayerLoad = [WorldCount]int32{1000} // WorldMaxPlayerLoad is a list of each world's player cap
 

@@ -61,5 +61,5 @@ const (
 	IRegisterPin         = 0x000A
 	IGuestLogin          = 0x0002
 	IUnknownPlsIgnore1   = 0x001A // this gets spammed while on login screen and I dunno why
-	IUnknownPlsIgnore2   = 0x000F 
+	IUnknownPlsIgnore2   = 0x000F
 )

@@ -30,6 +30,7 @@ type Connection interface {
 	SendPacket(packet maplelib.Packet) error
 
 	// Ping sends a ping packet to the client
+	// if the connection is a client, this will send a pong instead
 	Ping() error
 
 	// OnPong must be called when a pong is received
@@ -37,4 +38,7 @@ type Connection interface {
 
 	// Conn returns the underlying connection
 	Conn() net.Conn
+
+	// IsClient returns true if the connection is a client connected to a server
+	IsClient() bool
 }

@@ -15,16 +15,20 @@
 
 package main
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 import (
-	"github.com/Francesco149/kagami/common"
 	"github.com/Francesco149/kagami/common/interserver"
+	"github.com/Francesco149/kagami/loginserver/worlds"
 	"github.com/Francesco149/maplelib"
 )
 
 // Handle handles inter-server loginserver packets
-func HandleInter(con *common.InterserverConnection, p maplelib.Packet) (handled bool, err error) {
+func HandleInter(con *worlds.Connection, p maplelib.Packet) (handled bool, err error) {
+	handled = false
 	it := p.Begin()
 	header, err := it.Decode2()
 	if err != nil {
@@ -34,12 +38,15 @@ func HandleInter(con *common.InterserverConnection, p maplelib.Packet) (handled 
 	// check auth
 	if !con.Authenticated() {
 		if header != interserver.IOAuth {
-			return false, errors.New("Tried to send packets without being authenticated")
+			return false, errors.New(fmt.Sprintf("Tried to send %v without being authenticated", p))
 		}
 		err = con.CheckAuth(it)
 		if err != nil {
 			return
 		}
+		err = worlds.AddWorldServer(con)
+
+		return true, nil
 	}
 
 	// TODO

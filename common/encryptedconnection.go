@@ -53,13 +53,18 @@ func (e InvalidPacketError) Error() string {
 // An EncryptedConnection represent an individual client connected to our socket
 // that will send and receive MapleStory-encrypted packets
 type EncryptedConnection struct {
-        Connection
+	Connection
 	con        net.Conn
 	send       maplelib.Crypt
 	recv       maplelib.Crypt
-	pinged     bool
+	pinged     bool // unused in client mode
 	lastping   int64
-	lastactive int64
+	lastactive int64 // unused in client mode
+	isclient   bool
+}
+
+func (c *EncryptedConnection) IsClient() bool {
+	return c.isclient
 }
 
 // Checks that the given error is not nil and is a timeout
@@ -74,6 +79,10 @@ func isTimeout(err error) bool {
 
 func (c *EncryptedConnection) renewSendTimeout() {
 	c.Conn().SetWriteDeadline(time.Now().Add(consts.ClientTimeout * time.Second))
+}
+
+func (c *EncryptedConnection) renewRecvTimeout() {
+	c.Conn().SetDeadline(time.Now().Add(consts.ClientTimeout * time.Second))
 }
 
 // makeHandshake returns a handshake packet that must be sent UNENCRYPTED to newly connected clients
@@ -115,21 +124,91 @@ func (c *EncryptedConnection) sendHandshake(isTestServer bool) error {
 
 // NewEncryptedConnection creates an encrypted connection around the given
 // connection and initializes the encryption by performing the handshake
-func NewEncryptedConnection(con net.Conn, isTestServer bool) (c *EncryptedConnection) {
+// if the connection is a client, it will wait for a handshake packet instead
+func NewEncryptedConnection(con net.Conn, isTestServer, isclient bool) (c *EncryptedConnection) {
 	var ivrecv, ivsend [4]byte
 
 	c = &EncryptedConnection{}
 	c.con = con
+	c.isclient = isclient
 
-	// randomly generate initialization vectors
-	rand.Read(ivrecv[:])
-	rand.Read(ivsend[:])
+	if !isclient {
+		// randomly generate initialization vectors
+		rand.Read(ivrecv[:])
+		rand.Read(ivsend[:])
 
-	// init encryption
-	c.send = maplelib.NewCrypt(ivsend, consts.MapleVersion)
-	c.recv = maplelib.NewCrypt(ivrecv, consts.MapleVersion)
+		// init encryption
+		c.send = maplelib.NewCrypt(ivsend, consts.MapleVersion)
+		c.recv = maplelib.NewCrypt(ivrecv, consts.MapleVersion)
 
-	c.sendHandshake(isTestServer)
+		c.sendHandshake(isTestServer)
+	} else {
+		// wait for handshake
+		c.renewRecvTimeout()
+		hs := maplelib.Packet(make([]byte, 15))
+		err := c.tryRead(hs)
+		if err != nil {
+			fmt.Println("Failed to read handshake packet:", err)
+			c = nil
+			return
+		}
+
+		it := hs.Begin()
+
+		// header
+		header, err := it.Decode2()
+		if err != nil {
+			fmt.Println("Failed to read handshake header:", err)
+			c = nil
+			return
+		}
+		if header != handshakeHeader {
+			fmt.Println("Not a valid handshake packet.")
+			c = nil
+			return
+		}
+
+		// maple version
+		version, err := it.Decode2()
+		if err != nil {
+			fmt.Println("Failed to read handshake version:", err)
+			c = nil
+			return
+		}
+		if version != consts.MapleVersion {
+			fmt.Println("Client version mismatch (server:", version, ", you:", consts.MapleVersion)
+			c = nil
+			return
+		}
+
+		_, err = it.Decode2()
+
+		// send iv
+		for i := 0; i < 4; i++ {
+			tmp, err := it.Decode1()
+			if err != nil {
+				fmt.Println("Failed to read handshake send iv:", err)
+				c = nil
+				return
+			}
+			ivsend[i] = tmp
+		}
+
+		// recv iv
+		for i := 0; i < 4; i++ {
+			tmp, err := it.Decode1()
+			if err != nil {
+				fmt.Println("Failed to read handshake recv iv:", err)
+				c = nil
+				return
+			}
+			ivrecv[i] = tmp
+		}
+
+		// init encryption
+		c.send = maplelib.NewCrypt(ivsend, consts.MapleVersion)
+		c.recv = maplelib.NewCrypt(ivrecv, consts.MapleVersion)
+	}
 	return
 }
 
@@ -139,58 +218,83 @@ func (c *EncryptedConnection) RecvCrypt() *maplelib.Crypt { return &c.recv }
 
 // Ping sends a ping packet to the client and starts waiting for a pong
 func (c *EncryptedConnection) Ping() error {
-	if c.pinged {
-		return nil
-	}
+	if !c.isclient {
+		if c.pinged {
+			return nil
+		}
 
-	c.lastping = time.Now().Unix()
-	c.pinged = true
-	return c.SendPacket(packets.Ping())
+		c.lastping = time.Now().Unix()
+		c.pinged = true
+		//fmt.Println(c.Conn().RemoteAddr(), "Pinging client")
+		return c.SendPacket(packets.Ping())
+	} else {
+		// this is actually a pong to the server
+		c.lastping = time.Now().Unix()
+		//fmt.Println(c.Conn().RemoteAddr(), "Got ping from server")
+		return c.SendPacket(packets.Pong())
+	}
 }
 
 // OnPong resets the ping status and timeout time
 func (c *EncryptedConnection) OnPong() error {
-	if !c.pinged { // fake pong
-		return errors.New(fmt.Sprintf("%v attempted to fake a pong", c.Conn().RemoteAddr()))
-	}
+	if !c.isclient {
+		if !c.pinged { // fake pong
+			return errors.New(fmt.Sprintf("%v attempted to fake a pong", c.Conn().RemoteAddr()))
+		}
 
-	c.pinged = false
-	return nil
+		//fmt.Println(c.Conn().RemoteAddr(), "Got pong from client")
+		c.pinged = false
+		return nil
+	} else {
+		// this is actually a ping from the server so we need to respond with a pong
+		return c.Ping()
+	}
 }
 
 // tryRead attempts to read a packet from the connection and sends a ping if the client goes idle
 func (c *EncryptedConnection) tryRead(p []byte) (err error) {
-	// basically, set read timeout to a fraction the client timeout and try reading
-	// for a short time multiple times while checking if it's time to ping
+	if !c.isclient {
+		// basically, set read timeout to a fraction the client timeout and try reading
+		// for a short time multiple times while checking if it's time to ping
 
-	loops := consts.ClientTimeout / consts.ClientIdle
+		loops := consts.ClientTimeout / consts.ClientIdle
 
-	for i := 0; i < loops; i++ {
-		// the client has been inactive long enough so we're gonna ping it
-		if time.Now().Unix()-c.lastactive > consts.ClientIdle {
-			err = c.Ping()
-			if err != nil {
-				return
+		for i := 0; i < loops; i++ {
+			// the client has been inactive long enough so we're gonna ping it
+			if time.Now().Unix()-c.lastactive > consts.ClientIdle {
+				err = c.Ping()
+				if err != nil {
+					return
+				}
 			}
+
+			// this will make read time out
+			c.Conn().SetReadDeadline(time.Now().Add(consts.ClientIdle * time.Second))
+
+			// read data
+			n, err := c.Conn().Read(p)
+			if isTimeout(err) {
+				continue
+			}
+			if n != cap(p) || err != nil {
+				return IOError{n, err}
+			}
+
+			break // no errors
 		}
 
-		// this will make read time out
-		c.Conn().SetReadDeadline(time.Now().Add(consts.ClientIdle * time.Second))
-
-		// read data
+		if isTimeout(err) {
+			err = errors.New("Read timeout")
+		}
+	} else {
+		c.renewRecvTimeout()
 		n, err := c.Conn().Read(p)
 		if isTimeout(err) {
-			continue
+			err = errors.New("Read timeout")
 		}
 		if n != cap(p) || err != nil {
 			return IOError{n, err}
 		}
-
-		break // no errors
-	}
-
-	if isTimeout(err) {
-		err = errors.New("Read timeout")
 	}
 
 	return

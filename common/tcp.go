@@ -24,5 +24,5 @@ func Listen(ipport string) (sock net.Listener, err error) {
 
 // Listen connects to a TCP server on the given port
 func Dial(ipport string) (con net.Conn, err error) {
-        return net.Dial("tcp", ipport)
+	return net.Dial("tcp", ipport)
 }

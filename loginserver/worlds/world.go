@@ -15,42 +15,39 @@
 
 package worlds
 
-import (
-	"github.com/Francesco149/kagami/common"
-	"github.com/Francesco149/kagami/common/config"
-)
+import "github.com/Francesco149/kagami/common/config"
 
 // A World holds information about a single world, such as the player load, listening port and so on
 type World struct {
 	connected  bool
-	id         byte
-	port       uint32
+	id         int8
+	port       int16
 	playerLoad int32
-	worldcon   *common.EncryptedConnection
+	worldcon   *Connection
 	config     *config.WorldConf
-	channels   map[byte]*Channel
+	channels   map[int8]*Channel
 }
 
-func (w *World) Connected() bool                       { return w.connected }
-func (w *World) Id() byte                              { return w.id }
-func (w *World) Port() uint32                          { return w.port }
-func (w *World) PlayerLoad() int32                     { return w.playerLoad }
-func (w *World) WorldCon() *common.EncryptedConnection { return w.worldcon }
-func (w *World) Conf() *config.WorldConf               { return w.config }
-func (w *World) Channel(id byte) *Channel              { return w.channels[id] }
+func (w *World) Connected() bool          { return w.connected }
+func (w *World) Id() int8                 { return w.id }
+func (w *World) Port() int16              { return w.port }
+func (w *World) PlayerLoad() int32        { return w.playerLoad }
+func (w *World) WorldCon() *Connection    { return w.worldcon }
+func (w *World) Conf() *config.WorldConf  { return w.config }
+func (w *World) Channel(id int8) *Channel { return w.channels[id] }
 
-func (w *World) SetConnected(connected bool)                      { w.connected = connected }
-func (w *World) SetId(id byte)                                    { w.id = id }
-func (w *World) SetPort(port uint32)                              { w.port = port }
-func (w *World) SetPlayerLoad(playerLoad int32)                   { w.playerLoad = playerLoad }
-func (w *World) SetWorldCon(worldcon *common.EncryptedConnection) { w.worldcon = worldcon }
-func (w *World) SetConf(config *config.WorldConf)                 { w.config = config }
+func (w *World) SetConnected(connected bool)      { w.connected = connected }
+func (w *World) SetId(id int8)                    { w.id = id }
+func (w *World) SetPort(port int16)               { w.port = port }
+func (w *World) SetPlayerLoad(playerLoad int32)   { w.playerLoad = playerLoad }
+func (w *World) SetWorldCon(worldcon *Connection) { w.worldcon = worldcon }
+func (w *World) SetConf(config *config.WorldConf) { w.config = config }
 
 // ClearChannels deletes all of the channels in this world
-func (w *World) ClearChannels() { w.channels = make(map[byte]*Channel) }
+func (w *World) ClearChannels() { w.channels = make(map[int8]*Channel) }
 
 // RemoveChannel removes a channel by id
-func (w *World) RemoveChannel(id byte) { delete(w.channels, id) }
+func (w *World) RemoveChannel(id int8) { delete(w.channels, id) }
 
 // AddChannel adds a channel with the given id (overwrites if the given id already exists)
-func (w *World) AddChannel(id byte, ch *Channel) { w.channels[id] = ch }
+func (w *World) AddChannel(id int8, ch *Channel) { w.channels[id] = ch }

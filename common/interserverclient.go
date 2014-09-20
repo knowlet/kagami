@@ -15,32 +15,23 @@
 
 package common
 
-import (
-	"github.com/Francesco149/kagami/common/packets"
-	"github.com/Francesco149/maplelib"
-)
+import "net"
+import "github.com/Francesco149/kagami/common/interserver"
 
-// Handle handles packets that are common to all three servers
-func Handle(con Connection, p maplelib.Packet) (handled bool, err error) {
-	it := p.Begin()
-	header, err := it.Decode2()
-	if err != nil {
-		return false, err
-	}
-
-	switch {
-	case
-		header == packets.IPong,
-		// this can only happen when the connection is a client in inter-server connections
-		con.IsClient() && header == packets.OPing:
-		return handlePong(con)
-	}
-
-	return false, nil // forward packet to next handler
+// InterserverClient represent a connection to another component of the server.
+// It's a wrapper around EncryptedConnection specialized for inter-server communication.
+// It handles authentification through the internal password.
+type InterserverClient struct {
+	*EncryptedConnection // underlying encrypted connection
 }
 
-func handlePong(con Connection) (handled bool, err error) {
-	err = con.OnPong()
-	handled = (err == nil)
-	return
+// NewInterserverClient initializes a new inter-server connection around a basic net.Conn
+func NewInterserverClient(con net.Conn, passwd string) *InterserverClient {
+	res := &InterserverClient{
+		EncryptedConnection: NewEncryptedConnection(con, false, true),
+	}
+
+	auth := interserver.Auth(passwd)
+	res.SendPacket(auth)
+	return res
 }

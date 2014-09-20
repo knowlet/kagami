@@ -43,8 +43,8 @@ const (
 type Connection struct {
 	*common.EncryptedConnection        // underlying encrypted connection
 	admin                       bool   // true if the user is an admin
-	worldid                     byte   // numeric world id
-	channel                     byte   // channel number
+	worldid                     int8   // numeric world id
+	channel                     int8   // channel number
 	userid                      int32  // user id in the database
 	invalidLogins               uint32 // invalid login counter
 	gmLevel                     int32  // gm level
@@ -56,9 +56,9 @@ type Connection struct {
 // NewConnection initializes and returns an encrypted connection to a MapleStory client
 func NewConnection(basecon net.Conn, testserver bool) *Connection {
 	return &Connection{
-		EncryptedConnection: common.NewEncryptedConnection(basecon, testserver), // base class
+		EncryptedConnection: common.NewEncryptedConnection(basecon, testserver, false), // base class
 		admin:               false,
-		worldid:             0xFF,
+		worldid:             -1,
 		channel:             0,
 		userid:              0,
 		invalidLogins:       0,
@@ -89,10 +89,10 @@ func (c *Connection) String() string {
 
 func (c *Connection) Admin() bool             { return c.admin }
 func (c *Connection) SetAdmin(admin bool)     { c.admin = admin }
-func (c *Connection) WorldId() byte           { return c.worldid }
-func (c *Connection) SetWorldId(worldid byte) { c.worldid = worldid }
-func (c *Connection) Channel() byte           { return c.channel }
-func (c *Connection) SetChannel(channel byte) { c.channel = channel }
+func (c *Connection) WorldId() int8           { return c.worldid }
+func (c *Connection) SetWorldId(worldid int8) { c.worldid = worldid }
+func (c *Connection) Channel() int8           { return c.channel }
+func (c *Connection) SetChannel(channel int8) { c.channel = channel }
 func (c *Connection) Id() int32               { return c.userid }
 func (c *Connection) SetId(id int32)          { c.userid = id }
 func (c *Connection) InvalidLogins() uint32   { return c.invalidLogins }
