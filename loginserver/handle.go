@@ -26,6 +26,7 @@ import (
 import (
 	"github.com/Francesco149/kagami/common"
 	"github.com/Francesco149/kagami/common/consts"
+	"github.com/Francesco149/kagami/common/interserver"
 	"github.com/Francesco149/kagami/common/packets"
 	"github.com/Francesco149/kagami/loginserver/client"
 	"github.com/Francesco149/kagami/loginserver/items"
@@ -384,8 +385,7 @@ func handleServerStatusRequest(con *client.Connection, it maplelib.PacketIterato
 // sendWorldAllChars returns a packet that sends the characters list for one world to the client
 // when "show all chars" has been requested
 func sendWorldAllChars(worldId byte, charlist []*CharData) (p maplelib.Packet) {
-	p.Encode4(0x00000000)
-	p.Encode2(packets.OAllCharlist)
+	p = packets.NewEncryptedPacket(packets.OAllCharlist)
 	p.Encode1(0x00)
 	p.Encode1(worldId)
 	p.Encode1(byte(len(charlist)))
@@ -475,9 +475,7 @@ func handleRelog(con *client.Connection) (handled bool, err error) {
 // sendWorldChars returns a packet that sends the characters list for one world to the client
 // after the user selects a channel
 func sendWorldChars(charlist []*CharData, maxchars byte) (p maplelib.Packet) {
-	p.Encode4(0x00000000)
-
-	p.Encode2(packets.OCharList)
+	p = packets.NewEncryptedPacket(packets.OCharList)
 	p.Encode1(0x00)
 
 	// encode all characters
@@ -606,9 +604,10 @@ func handleCharSelect(con *client.Connection, it maplelib.PacketIterator) (handl
 	// notify world server that we're transferring this player from the loginserver to the worldserver
 	w := worlds.Get(con.WorldId())
 	// TODO: inter-server communication
-	//w.WorldCon().SendPacket(
-	//interserver.ConnectingToChannel(con.Channel(), charId,
-	//strings.Split(con.Conn().RemoteAddr().String(), ":")[0]))
+	ip := strings.Split(con.Conn().RemoteAddr().String(), ":")[0]
+	w.WorldCon().SendPacket(
+		interserver.ConnectingToChannel(con.Channel(), charId,
+			[]byte(ip)))
 
 	// TODO: match user's subnet and connect to 127.0.0.1 if they are on the same subnet
 
@@ -668,8 +667,7 @@ func handleCheckCharName(con *client.Connection, it maplelib.PacketIterator) (ha
 
 // sendChar returns a packet that sends the information for a newly created character
 func sendChar(char *CharData) (p maplelib.Packet) {
-	p.Encode4(0x00000000)
-	p.Encode2(packets.OAddNewCharEntry)
+	p = packets.NewEncryptedPacket(packets.OAddNewCharEntry)
 	p.Encode1(0x01) // success = true
 	char.Encode(p)
 	return

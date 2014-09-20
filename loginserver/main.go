@@ -16,6 +16,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"net"
@@ -28,6 +29,7 @@ import (
 	"github.com/Francesco149/kagami/common/consts"
 	"github.com/Francesco149/kagami/loginserver/client"
 	"github.com/Francesco149/kagami/loginserver/worlds"
+	"github.com/Francesco149/maplelib"
 )
 
 // loadDefaultWorlds loads and adds the default world list to the loginserver
@@ -52,41 +54,6 @@ func loadDefaultWorlds() {
 	}
 }
 
-// clientLoop sends the handshake and handles packets for a single client in a loop
-func clientLoop(basecon net.Conn) {
-	defer basecon.Close()
-	con := client.NewConnection(basecon, false)
-
-	for {
-		inpacket, err := con.RecvPacket()
-		if err != nil {
-			fmt.Println(err)
-			break
-		}
-
-		handled, err := common.Handle(con, inpacket)
-		if err != nil {
-			fmt.Println(err)
-			break
-		}
-
-		if !handled {
-			handled, err = Handle(con, inpacket)
-			if err != nil {
-				fmt.Println(err)
-				break
-			}
-		}
-
-		if !handled {
-			fmt.Println("Unhandled packet", inpacket)
-			//break
-		}
-	}
-
-	fmt.Println("Dropping: ", con.Conn().RemoteAddr())
-}
-
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
@@ -96,22 +63,27 @@ func main() {
 	fmt.Println("Loading worlds...")
 	loadDefaultWorlds()
 
-	sock, err := common.NewTcpServer(fmt.Sprintf(":%d", consts.LoginPort))
-	if err != nil {
-		fmt.Println("Failed to create socket: ", err)
-		return
-	}
+	go common.Accept("world", consts.LoginInterserverPort,
+		func(con common.Connection, p maplelib.Packet) (bool, error) {
+			scon, ok := con.(*common.InterserverConnection)
+			if !ok {
+				return false, errors.New("World handler failed type assertion")
+			}
+			return HandleInter(scon, p)
+		},
+		func(con net.Conn) common.Connection {
+			return common.NewInterserverConnection(con, consts.InterServerPassword)
+		})
 
-	fmt.Println("Listening on port", consts.LoginPort)
-
-	for {
-		con, err := sock.Accept()
-		if err != nil {
-			fmt.Println("Failed to accept connection: ", err)
-			return
-		}
-
-		fmt.Println("Accepted: ", con.RemoteAddr())
-		go clientLoop(con)
-	}
+	common.Accept("client", consts.LoginPort,
+		func(con common.Connection, p maplelib.Packet) (bool, error) {
+			scon, ok := con.(*client.Connection)
+			if !ok {
+				return false, errors.New("Client handler failed type assertion")
+			}
+			return Handle(scon, p)
+		},
+		func(con net.Conn) common.Connection {
+			return client.NewConnection(con, false)
+		})
 }

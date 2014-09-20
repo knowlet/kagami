@@ -53,6 +53,7 @@ func (e InvalidPacketError) Error() string {
 // An EncryptedConnection represent an individual client connected to our socket
 // that will send and receive MapleStory-encrypted packets
 type EncryptedConnection struct {
+        Connection
 	con        net.Conn
 	send       maplelib.Crypt
 	recv       maplelib.Crypt

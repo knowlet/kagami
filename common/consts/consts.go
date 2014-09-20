@@ -27,6 +27,7 @@ const MySQLHost = "127.0.0.1:3306" // MySQLHost contains the ip:port of the MySQ
 const MySQLDB = "my_kagami"        // MySQLDB contains the name of the used MySQL database
 
 const LoginPort = 8484 // Loginport is the port the Login Server will listen on
+const LoginInterserverPort = 8485 // LoginInterserverPort is the port the Login Server will listen on for inter-server connections
 
 const InterServerPassword = "topfuckingkek" // The internal password that will be used to do inter-server communication
 

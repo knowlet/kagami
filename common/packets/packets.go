@@ -17,18 +17,18 @@ package packets
 
 import "github.com/Francesco149/maplelib"
 
-// newEncryptedPacket creates a new packet and appends a placeholder for
+// NewEncryptedPacket creates a new packet and appends a placeholder for
 // the encrypted header plus the given header to it
-func newEncryptedPacket(header uint16) (p maplelib.Packet) {
-	p = maplelib.NewPacket()
-	p.Encode4(0x00000000) // placeholder for the encrypted header
-	p.Encode2(header)
-	return
+func NewEncryptedPacket(header uint16) (p maplelib.Packet) {
+    p = maplelib.NewPacket()
+    p.Encode4(0x00000000) // placeholder for the encrypted header
+    p.Encode2(header)
+    return
 }
 
 // Ping returns a ping packet
 func Ping() (p maplelib.Packet) {
-	p = newEncryptedPacket(OPing)
+	p = NewEncryptedPacket(OPing)
 	return
 }
 
@@ -45,7 +45,7 @@ func AuthSuccessRequestPin(username string) (p maplelib.Packet) {
 		0x00, 0x00, 0x00, 0x00, 0x00, 0xDC, 0x3D, 0x0B,
 		0x28, 0x64, 0xC5, 0x01, 0x08, 0x00, 0x00, 0x00}
 
-	p = newEncryptedPacket(OLoginStatus)
+	p = NewEncryptedPacket(OLoginStatus)
 	p.Append(tacos)
 	p.EncodeString(username)
 	p.Append(pizza)
@@ -97,7 +97,7 @@ const (
    LoginTrialVersionNotice = 27 // Some weird full client notice, probably for trial versions
 */
 func LoginFailed(reason int32) (p maplelib.Packet) {
-	p = newEncryptedPacket(OLoginStatus)
+	p = NewEncryptedPacket(OLoginStatus)
 	p.Encode4(uint32(reason))
 	p.Encode2(0x0000)
 	return
@@ -144,7 +144,7 @@ const (
 */
 func LoginBanned(koreanTimeExpire uint64, reason byte) (p maplelib.Packet) {
 	huahuehua := [5]byte{0x00, 0x00, 0x00, 0x00, 0x00}
-	p = newEncryptedPacket(OLoginStatus)
+	p = NewEncryptedPacket(OLoginStatus)
 	p.Encode1(0x02)
 	p.Append(huahuehua[:])
 	p.Encode1(reason)
@@ -169,7 +169,7 @@ const (
 // PinOpSystemError = 3 // Connection failed due to system error
 // PinOpEnter       = 4 // Enter the pin
 func PinOperation(mode byte) (p maplelib.Packet) {
-	p = newEncryptedPacket(OPinOperation)
+	p = NewEncryptedPacket(OPinOperation)
 	p.Encode1(mode)
 	return
 }
@@ -192,7 +192,7 @@ func RequestPin() maplelib.Packet {
 
 // WorldListEnd returns a packet that indicates the end of a world list
 func WorldListEnd() (p maplelib.Packet) {
-	p = newEncryptedPacket(OServerList)
+	p = NewEncryptedPacket(OServerList)
 	p.Encode1(0xFF)
 	return
 }
@@ -210,7 +210,7 @@ const (
 // ServerHigh = 1 // Highly populated
 // ServerFull = 2 // Full
 func ServerStatus(status uint16) (p maplelib.Packet) {
-	p = newEncryptedPacket(OServerStatus)
+	p = NewEncryptedPacket(OServerStatus)
 	p.Encode2(status)
 	return
 }
@@ -218,7 +218,7 @@ func ServerStatus(status uint16) (p maplelib.Packet) {
 // SendAllCharsBegin returns a packet that sends the beginning of a character list packet
 // unk must be charcount + (3 - charcount % 3)
 func SendAllCharsBegin(worldcount, unk uint32) (p maplelib.Packet) {
-        p = newEncryptedPacket(OAllCharlist)
+        p = NewEncryptedPacket(OAllCharlist)
         p.Encode1(0x01)
         p.Encode4(worldcount)
         p.Encode4(unk)
@@ -227,7 +227,7 @@ func SendAllCharsBegin(worldcount, unk uint32) (p maplelib.Packet) {
 
 // RelogResponse rturns a packet that accepts a relog request
 func RelogResponse() (p maplelib.Packet) {
-        p = newEncryptedPacket(ORelogResponse)
+        p = NewEncryptedPacket(ORelogResponse)
         p.Encode1(0x01)
         return
 }
@@ -235,7 +235,7 @@ func RelogResponse() (p maplelib.Packet) {
 // ConnectIp returns a server transfer packet
 func ConnectIp(ip []byte, port int16, charId int32) (p maplelib.Packet) {
         huehuahue := make([]byte, 5)
-        p = newEncryptedPacket(OServerIP)
+        p = NewEncryptedPacket(OServerIP)
         p.Encode2(0x0000)
         p.Append(ip)
         p.Encode2(uint16(port))
@@ -246,7 +246,7 @@ func ConnectIp(ip []byte, port int16, charId int32) (p maplelib.Packet) {
 
 // CharNameResponse returns a char name check response packet
 func CharNameResponse(charName string, used bool) (p maplelib.Packet) {
-        p = newEncryptedPacket(OCharNameResponse)
+        p = NewEncryptedPacket(OCharNameResponse)
         p.EncodeString(charName)
         if used {
                 p.Encode1(0x01)
@@ -269,7 +269,7 @@ const (
 // DeleteFail = 1 // failed to delete character
 // DeleteInvalidCode = 12 // invalid birthday
 func DeleteCharResponse(id int32, state byte) (p maplelib.Packet) {
-        p = newEncryptedPacket(ODeleteCharResponse)
+        p = NewEncryptedPacket(ODeleteCharResponse)
         p.Encode4(uint32(id))
         p.Encode1(state)
         return
@@ -277,7 +277,7 @@ func DeleteCharResponse(id int32, state byte) (p maplelib.Packet) {
 
 // SetGenderDone returns a packet response for a set gender request
 func SetGenderDone(gender byte) (p maplelib.Packet) {
-        p = newEncryptedPacket(OGenderDone)
+        p = NewEncryptedPacket(OGenderDone)
         p.Encode1(gender)
         p.Encode1(0x01)
         return
@@ -285,7 +285,7 @@ func SetGenderDone(gender byte) (p maplelib.Packet) {
 
 // PinAssigned returns a packet that tells the client that the pin has successfully been assigned
 func PinAssigned() (p maplelib.Packet) {
-	p = newEncryptedPacket(OPinAssigned)
+	p = NewEncryptedPacket(OPinAssigned)
 	p.Encode1(0x01)
 	return
 }
