@@ -17,7 +17,12 @@ package common
 
 import "net"
 
-// NewTcpServer creates and returns a TCP listener on the given port
-func NewTcpServer(port string) (sock net.Listener, err error) {
-	return net.Listen("tcp", port)
+// Listen creates and returns a TCP listener on the given port
+func Listen(ipport string) (sock net.Listener, err error) {
+	return net.Listen("tcp", ipport)
+}
+
+// Listen connects to a TCP server on the given port
+func Dial(ipport string) (con net.Conn, err error) {
+        return net.Dial("tcp", ipport)
 }

@@ -63,6 +63,7 @@ func main() {
 	fmt.Println("Loading worlds...")
 	loadDefaultWorlds()
 
+	// accept interserver world connections in a separate thread
 	go common.Accept("world", consts.LoginInterserverPort,
 		func(con common.Connection, p maplelib.Packet) (bool, error) {
 			scon, ok := con.(*common.InterserverConnection)
@@ -75,6 +76,7 @@ func main() {
 			return common.NewInterserverConnection(con, consts.InterServerPassword)
 		})
 
+	// accept client connections in this thread
 	common.Accept("client", consts.LoginPort,
 		func(con common.Connection, p maplelib.Packet) (bool, error) {
 			scon, ok := con.(*client.Connection)

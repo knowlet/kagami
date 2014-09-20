@@ -68,7 +68,7 @@ func handleLoop(name string, basecon net.Conn, handler PacketHandler, makeConnec
 // makeConnection is a connection factory function that must return a connection that implements common.Connection.
 // Once a connection is accepted, a new thread will be started to handle its packets.
 func Accept(name string, port int16, handler PacketHandler, makeConnection ConnectionFactory) {
-        sock, err := NewTcpServer(fmt.Sprintf(":%d", port))
+        sock, err := Listen(fmt.Sprintf(":%d", port))
         if err != nil {
             fmt.Println("Failed to create socket: ", err)
             return
