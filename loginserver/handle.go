@@ -105,6 +105,7 @@ func handleLoginPassword(con *client.Connection, it maplelib.PacketIterator) (ha
 	var online, banned, admin, gmlevel int = 0, 0, 0, 0
 	var banreason, deletepassword uint = 0, 0
 	var bantime, creation int64
+	var userid int32
 	handled = false
 
 	user, err := it.DecodeString()
@@ -186,6 +187,7 @@ func handleLoginPassword(con *client.Connection, it maplelib.PacketIterator) (ha
 			admin = rows[0].Int(coladmin)
 			gmlevel = rows[0].Int(colgmlevel)
 			deletepassword = rows[0].Uint(coldeletepassword)
+			userid = int32(rows[0].Int(coluserid))
 
 			successful = true
 		} else {
@@ -207,14 +209,15 @@ func handleLoginPassword(con *client.Connection, it maplelib.PacketIterator) (ha
 
 		if len(ipbanrows) != 0 {
 			// the user is ip banned
+			// I don't think this date matters
 			ipbantime := time.Date(7100, time.January, 1, 0, 0, 0, 0, time.Local)
 			err = con.SendPacket(packets.LoginBanned(common.UnixToTempBanTimestamp(ipbantime.Unix()), packets.BanDeleted))
 		} else {
 			// store account info obtained from the database
 			dbpassword := rows[0].Str(colpassword)
 			dbsalt := rows[0].Str(colsalt)
-			userid := rows[0].Int(coluserid)
-
+			
+			userid = int32(rows[0].Int(coluserid))
 			online = rows[0].Int(colonline)
 			banned = rows[0].Int(colbanned)
 			banreason = rows[0].Uint(colbanreason)
@@ -281,6 +284,7 @@ func handleLoginPassword(con *client.Connection, it maplelib.PacketIterator) (ha
 	}
 
 	con.SetPlayerStatus(client.LoggedIn)
+	con.SetId(userid)
 
 	// TODO: check silence
 
@@ -473,7 +477,7 @@ func handleRelog(con *client.Connection) (handled bool, err error) {
 
 // sendWorldChars returns a packet that sends the characters list for one world to the client
 // after the user selects a channel
-func sendWorldChars(charlist []*CharData, maxchars byte) (p maplelib.Packet) {
+func sendWorldChars(charlist []*CharData, maxchars uint32) (p maplelib.Packet) {
 	p = packets.NewEncryptedPacket(packets.OCharList)
 	p.Encode1(0x00)
 
@@ -483,7 +487,7 @@ func sendWorldChars(charlist []*CharData, maxchars byte) (p maplelib.Packet) {
 		char.Encode(p)
 	}
 
-	p.Encode1(maxchars)
+	p.Encode4(maxchars)
 	return
 }
 
@@ -563,11 +567,11 @@ func handleCharlistRequest(con *client.Connection, it maplelib.PacketIterator) (
 		return
 	}
 
-	var maxslots byte
+	var maxslots uint32
 	if len(rows) > 0 {
-		maxslots = byte(rows[0].Int(colcharslots))
+		maxslots = uint32(rows[0].Int(colcharslots))
 	} else {
-		maxslots = consts.InitialCharSlots
+		maxslots = uint32(consts.InitialCharSlots)
 	}
 
 	// send character list

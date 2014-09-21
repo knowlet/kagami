@@ -229,7 +229,7 @@ func (c *CharData) Encode(p maplelib.Packet) {
 // given mysql row, which must belong to the given mysql result
 func GetCharDataFromDBRow(row mysql.Row, res mysql.Result) (data *CharData, err error) {
 	// column indices
-	colid := res.Map("id")
+	colid := res.Map("character_id")
 	colname := res.Map("name")
 	colgender := res.Map("gender")
 	colskin := res.Map("skin")

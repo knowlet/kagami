@@ -47,10 +47,7 @@ func loadDefaultWorlds() {
 		}
 
 		// add new world
-		world = &worlds.World{}
-		world.SetConf(config)
-		world.SetId(id)
-		world.SetPort(consts.WorldListenPort[i])
+		world = worlds.NewWorld(config, id, consts.WorldListenPort[i])
 		worlds.Add(world)
 	}
 }
@@ -67,7 +64,6 @@ func main() {
 	// accept interserver world connections in a separate thread
 	go common.Accept("world/chan", consts.LoginInterserverPort,
 		func(con common.Connection, p maplelib.Packet) (bool, error) {
-			fmt.Println(con.Conn().RemoteAddr(), "<-world/chan", p)
 			scon, ok := con.(*worlds.Connection)
 			if !ok {
 				return false, errors.New("World handler failed type assertion")

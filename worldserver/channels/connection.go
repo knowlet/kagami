@@ -13,25 +13,25 @@
    along with kagami. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package main
+package channels
 
 import "net"
 import "github.com/Francesco149/kagami/common"
 
-// ChannelConnection represent a connection accepted by the channel server.
+// A channls.Connection is a connection accepted by the channel server.
 // It's a wrapper around EncryptedConnection specialized for inter-server communication.
 // It handles authentification through the internal password.
-type ChannelConnection struct {
+type Connection struct {
 	*common.InterserverConnection // underlying encrypted connection
 	channelId                     int8
 }
 
-func (c *ChannelConnection) SetChannelId(channelId int8) { c.channelId = channelId }
-func (c *ChannelConnection) ChannelId() int8             { return c.channelId }
+func (c *Connection) SetChannelId(channelId int8) { c.channelId = channelId }
+func (c *Connection) ChannelId() int8             { return c.channelId }
 
-// NewChannelConnection initializes a new inter-server world connection around a basic net.Conn
-func NewChannelConnection(con net.Conn, passwd string) *ChannelConnection {
-	res := &ChannelConnection{
+// channls.Connection initializes a new inter-server world connection around a basic net.Conn
+func NewConnection(con net.Conn, passwd string) *Connection {
+	res := &Connection{
 		InterserverConnection: common.NewInterserverConnection(con, passwd),
 		channelId:             -1,
 	}

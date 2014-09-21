@@ -22,7 +22,9 @@ const (
 	IOConnectingToChannel = 0x1002
 	IOWorldConnect        = 0x1003
 	IOLoginChannelConnect = 0x1004
-	IORemoveChannel       = 0x1005
+	IORemoveChannel       = 0x1005 
+	IOChannelConnect      = 0x1006 
+	IORegisterChannel     = 0x1007
 )
 
 // Inter-server sync headers

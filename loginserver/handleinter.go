@@ -21,6 +21,7 @@ import (
 )
 
 import (
+        "github.com/Francesco149/kagami/common"
 	"github.com/Francesco149/kagami/common/interserver"
 	"github.com/Francesco149/kagami/loginserver/worlds"
 	"github.com/Francesco149/maplelib"
@@ -62,8 +63,37 @@ func HandleInter(con *worlds.Connection, p maplelib.Packet) (handled bool, err e
 	// TODO
 
 	switch header {
-
+        case interserver.IORegisterChannel:
+                return handleRegisterChannel(con, it)
 	}
 
 	return false, nil // forward packet to next handler
+}
+
+// handleRegisterChannel handles a channel register request
+func handleRegisterChannel(con *worlds.Connection, it maplelib.PacketIterator) (handled bool, err error) {
+        ipbytes := make([]byte, 4)
+        id, err := it.Decode1s()
+        if err != nil {
+                return
+        }
+        
+        for i := 0; i < 4; i++ {
+                var tmp byte
+                tmp, err = it.Decode1()
+                if err != nil {
+                        return        
+                }
+                ipbytes[i] = tmp
+        }
+        
+        port, err := it.Decode2s()
+        if err != nil {
+                return        
+        }
+        
+        worlds.Get(con.WorldId()).AddChannel(id, worlds.NewChannel(port))
+        fmt.Println("Registered channel", id, "to", common.BytesToIpString(ipbytes), ":", port)
+        handled = err == nil
+        return
 }

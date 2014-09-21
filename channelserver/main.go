@@ -25,6 +25,7 @@ import (
 
 import (
 	"github.com/Francesco149/kagami/common"
+	"github.com/Francesco149/kagami/common/config"
 	"github.com/Francesco149/kagami/common/consts"
 	"github.com/Francesco149/kagami/common/interserver"
 	"github.com/Francesco149/maplelib"
@@ -33,6 +34,9 @@ import (
 // TODO: everything, this is just a temporary main that will get reoganized into multiple files as I add stuff
 
 var channelWorldId int8 = -1
+var channelChanId int8 = -1
+var channelPort int16 = 0
+var channelWorldConf *config.WorldConf = nil
 
 // Handle handles inter-server packets exchanged between the channel server and the login/world server
 func Handle(con *common.InterserverClient, p maplelib.Packet) (handled bool, err error) {
@@ -46,6 +50,8 @@ func Handle(con *common.InterserverClient, p maplelib.Packet) (handled bool, err
 	switch header {
 	case interserver.IOLoginChannelConnect:
 		return handleLoginChannelConnect(con, it)
+	case interserver.IOChannelConnect:
+	        return handleChannelConnect(con, it)
 	}
 
 	return false, nil
@@ -87,7 +93,7 @@ func handleLoginChannelConnect(con *common.InterserverClient, it maplelib.Packet
 	}
 
 	// connect to worldserver
-	go common.Connect("worldserver", fmt.Sprintf("%d.%d.%d.%d:%d", ip[0], ip[1], ip[2], ip[3], port),
+	go common.Connect("worldserver", fmt.Sprintf("%s:%d", common.BytesToIpString(ip), port),
 		func(con common.Connection, p maplelib.Packet) (bool, error) {
 			scon, ok := con.(*common.InterserverClient)
 			if !ok {
@@ -101,6 +107,39 @@ func handleLoginChannelConnect(con *common.InterserverClient, it maplelib.Packet
 
 	handled = err == nil
 	return
+}
+
+// handleChannelConnect handles a worldserver channel connect packet
+// which tells the channel server which channel it will be handling
+func handleChannelConnect(con *common.InterserverClient, it maplelib.PacketIterator) (handled bool, err error) {
+        handled = false
+        
+        chanid, err := it.Decode1s()
+        if err != nil {
+                return        
+        }
+        
+        if chanid == -1 {
+                err = errors.New("No channel to handle")
+                return
+        }
+        
+        port, err := it.Decode2s()
+        conf, err := config.DecodeWorldConf(&it)
+        if err != nil {
+                return        
+        }
+        
+        fmt.Println("Handling channel", chanid, "on port", port)
+        channelChanId = chanid
+        channelPort = port
+        channelWorldConf = conf
+        // TODO: set map unload time
+        // TODO: start listening for players on channelPort
+        fmt.Println("Channel server is running!")
+        
+        handled = err == nil
+        return
 }
 
 func main() {

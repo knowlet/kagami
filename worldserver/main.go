@@ -25,20 +25,33 @@ import (
 
 import (
 	"github.com/Francesco149/kagami/common"
+	"github.com/Francesco149/kagami/common/packets"
 	"github.com/Francesco149/kagami/common/config"
 	"github.com/Francesco149/kagami/common/consts"
 	"github.com/Francesco149/kagami/common/interserver"
+	"github.com/Francesco149/kagami/worldserver/status"
+	"github.com/Francesco149/kagami/worldserver/channels"
 	"github.com/Francesco149/maplelib"
 )
 
 // TODO: everything, this is just a temporary main that will get reoganized into multiple files as I add stuff
 
-var worldconf *config.WorldConf = nil
-var worldport int16 = -1
-var loginconn *common.InterserverClient = nil // connection to the loginserver
+func makeChannelPort(chanid int8) int16 {
+        return status.Port() + int16(chanid) + 1        
+}
+
+// channelConnect returns a packet that respons to a channelserver connection request
+func channelConnect(channelId int8, port int16) (p maplelib.Packet) {
+        p = packets.NewEncryptedPacket(interserver.IOChannelConnect)
+        p.Encode1s(channelId)
+        p.Encode2s(port)
+        status.Conf().Encode(&p)
+        return
+}
 
 // HandleChan handles packets exchanged between the worldserver and the channelserver
-func HandleChan(con *ChannelConnection, p maplelib.Packet) (handled bool, err error) {
+func HandleChan(con *channels.Connection, p maplelib.Packet) (handled bool, err error) {
+        handled = false
 	it := p.Begin()
 	header, err := it.Decode2()
 	if err != nil {
@@ -48,7 +61,8 @@ func HandleChan(con *ChannelConnection, p maplelib.Packet) (handled bool, err er
 	// check auth
 	if !con.Authenticated() {
 		if header != interserver.IOAuth {
-			return false, errors.New(fmt.Sprintf("Tried to send %v without being authenticated", p))
+			err = errors.New(fmt.Sprintf("Tried to send %v without being authenticated", p))
+			return
 		}
 
 		var servertype byte = 255
@@ -59,13 +73,22 @@ func HandleChan(con *ChannelConnection, p maplelib.Packet) (handled bool, err er
 
 		switch servertype {
 		case interserver.ChannelServer: // we're only accepting channel serv connections here
-			// TODO: get first available channel
-			// TODO: generate channel port
-			// TODO: get external ip's
-			// TODO: register channel
-			// TODO: send channel connect packet to con
-			// TODO: sync channel connect
-			// TODO: send registerchannel to loginserv
+			available := channels.GetFirstAvailableId()
+			con.SetChannelId(available)
+			
+			if available == -1 {
+			        con.SendPacket(channelConnect(-1, 0))
+			        err = errors.New("No more channels available to assign.")
+			        return
+			}
+			
+			chanport := makeChannelPort(available)
+			// TODO: get external ip
+			ipbytes := common.RemoteAddrToBytes(con.Conn().RemoteAddr().String())
+			channels.Add(con, available, ipbytes, chanport)
+			con.SendPacket(channelConnect(available, chanport))
+			// TODO: send sync channel connect
+			status.LoginConn().SendPacket(interserver.RegisterChannel(available, ipbytes, chanport))
 		default:
 			err = errors.New("Unknown server type")
 		}
@@ -118,26 +141,26 @@ func handleWorldConnect(con *common.InterserverClient, it maplelib.PacketIterato
 
 	handled = true
 	fmt.Println("Handling world", worldid)
-	worldconf = conf
-	worldport = port
-	loginconn = con
+	status.SetConf(conf)
+	status.SetPort(port)
+	status.SetLoginConn(con)
 
 	// TODO: check if I need to store the loginserver's external ip address
 
 	// accept interserver chan connections in a separate thread
-	go common.Accept("chan", worldport,
+	go common.Accept("chan", status.Port(),
 		func(con common.Connection, p maplelib.Packet) (bool, error) {
-			scon, ok := con.(*ChannelConnection)
+			scon, ok := con.(*channels.Connection)
 			if !ok {
 				return false, errors.New("Channel handler failed type assertion")
 			}
 			return HandleChan(scon, p)
 		},
 		func(con net.Conn) common.Connection {
-			return NewChannelConnection(con, consts.InterServerPassword)
+			return channels.NewConnection(con, consts.InterServerPassword)
 		},
 		func(con common.Connection) {
-			scon, ok := con.(*ChannelConnection)
+			scon, ok := con.(*channels.Connection)
 			if !ok {
 				panic(errors.New("Channel handler failed type assertion on disconnect"))
 			}
@@ -148,12 +171,12 @@ func handleWorldConnect(con *common.InterserverClient, it maplelib.PacketIterato
 			}
 
 			fmt.Println("Removing channel", deletechanid)
-			if loginconn != nil {
-				loginconn.SendPacket(interserver.RemoveChannel(deletechanid))
+			if status.LoginConn() != nil {
+				status.LoginConn().SendPacket(interserver.RemoveChannel(deletechanid))
 			}
 
 			// TODO: disconnect players
-			// TODO: remove from channel list
+			channels.Remove(deletechanid)
 		})
 
 	fmt.Println("World server is running!")

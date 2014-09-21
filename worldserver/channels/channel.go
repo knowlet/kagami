@@ -13,23 +13,29 @@
    along with kagami. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package worlds
+package channels
 
-// A Channel holds information about a single channel, such as the port and the population
+// Channel holds information about one channel and its population
 type Channel struct {
-	port       int16
-	population int32
+        id int8 
+        port int16 
+        population int32 
+        con *Connection
 }
 
-// NewChannel creates and returns a new channel object
-func NewChannel(chanport int16) *Channel {
-        return &Channel{
-                port: chanport, 
+func NewChannel(ccon *Connection, cid int8, cport int16) *Channel {
+        return &Channel {
+                id: cid, 
+                port: cport, 
                 population: 0, 
+                con: ccon, 
         }
 }
 
-func (c *Channel) Port() int16             { return c.port }
-func (c *Channel) SetPort(port int16)      { c.port = port }
-func (c *Channel) Population() int32       { return c.population }
-func (c *Channel) SetPopulation(pop int32) { c.population = pop }
+func (c *Channel) IncPopulation() { c.population++ }
+func (c *Channel) DecPopulation() { c.population-- }
+func (c *Channel) Population() int32 { return c.population }
+func (c *Channel) SetConn(con *Connection) { c.con = con }
+func (c *Channel) Conn() *Connection { return c.con }
+func (c *Channel) SetPort(port int16) { c.port = port }
+func (c *Channel) Port() int16 { return c.port }

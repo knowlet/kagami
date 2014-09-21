@@ -18,7 +18,7 @@ package common
 import "net"
 import "github.com/Francesco149/kagami/common/interserver"
 
-// InterserverClient represent a connection to another component of the server.
+// An InterserverClient is a connection to another component of the server.
 // It's a wrapper around EncryptedConnection specialized for inter-server communication.
 // It handles authentification through the internal password.
 type InterserverClient struct {

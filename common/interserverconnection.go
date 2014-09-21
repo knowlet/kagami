@@ -23,7 +23,7 @@ import (
 
 import "github.com/Francesco149/maplelib"
 
-// InterserverConnection represent a connection accepted from another component of the server.
+// An InterserverConnection is a connection accepted from another component of the server.
 // It's a wrapper around EncryptedConnection specialized for inter-server communication.
 // It handles authentification through the internal password.
 type InterserverConnection struct {

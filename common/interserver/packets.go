@@ -66,3 +66,12 @@ func RemoveChannel(channelId int8) (p maplelib.Packet) {
 	p.Encode1s(channelId)
 	return
 }
+
+// RegisterChannel returns a packet that requests the loginserver to register a channel
+func RegisterChannel(channelId int8, ipbytes []byte, channelPort int16) (p maplelib.Packet) {
+        p = packets.NewEncryptedPacket(IORegisterChannel)
+        p.Encode1s(channelId)
+        p.Append(ipbytes)
+        p.Encode2s(channelPort)
+        return
+}

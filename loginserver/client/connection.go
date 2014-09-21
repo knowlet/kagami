@@ -37,7 +37,7 @@ const (
 	NotLoggedIn = 0x0D
 )
 
-// client.Connection represent a MapleStory client connected to the login server.
+// A client.Connection is a MapleStory client connected to the login server.
 // It's a wrapper around EncryptedConnection specialized for MapleStory clients.
 // It caches various data from the database such as gm level, char delete password and so on.
 type Connection struct {

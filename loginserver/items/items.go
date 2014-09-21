@@ -31,8 +31,8 @@ func Create(con *client.Connection, id, charid int32, slot int16) (err error) {
 	// TODO: obtain item info from wz files
 
 	db := common.GetDB()
-	st, err := db.Prepare("INSERT INTO items(inv, slot, location, user_id, world_id, item_id) " +
-		"VALUES(?, ?, 'inventory', ?, ?, ?)")
-	_, err = st.Run(itype, slot, con.Id(), con.WorldId(), id)
+	st, err := db.Prepare("INSERT INTO items(inv, slot, location, user_id, world_id, item_id, character_id) " +
+		"VALUES(?, ?, 'inventory', ?, ?, ?, ?)")
+	_, err = st.Run(itype, slot, con.Id(), con.WorldId(), id, charid)
 	return
 }

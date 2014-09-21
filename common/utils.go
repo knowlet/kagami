@@ -107,3 +107,11 @@ func RemoteAddrToBytes(addr string) (res []byte) {
 
 	return
 }
+
+// BytesToIpString converts a byte array that represents an ip to a string
+func BytesToIpString(ip []byte) string {
+        if len(ip) != 4 {
+                return "ipv6 not supported"        
+        }
+        return fmt.Sprintf("%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3])
+}
