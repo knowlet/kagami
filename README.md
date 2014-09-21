@@ -10,9 +10,10 @@ Feature progress
 * Login - [done (video)](http://hnng.moe/f/5N)
 * MySQL - [done](http://www.hnng.moe/f/5H)
 * World / Channel Selection - [done (video)](http://hnng.moe/f/6N)
-* Character Selection / Creation / Deletion - [done](http://hnng.moe/f/7l)
+* Character selection / creation / deletion and multiple worlds/channels - [done (video)](http://www.hnng.moe/f/7m)
 * Handling Bans - [done](http://www.hnng.moe/f/5Q)
 * Getting in game - WIP
+* Basic in-game sync - WIP
 
 Getting started
 ============

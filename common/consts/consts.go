@@ -171,72 +171,77 @@ var BeginnerHairColors = map[int32]bool{0: true, 1: true, 2: true, 3: true, 7: t
 const BeginnersGuidebook = 4161001
 
 // Default Worlds --------------------------------------------------------------
-const WorldCount = 1 // WorldCount is the number of worlds that will connect to the loginserver
+const WorldCount = 2 // WorldCount is the number of worlds that will connect to the loginserver
 
-var WorldName = [WorldCount]string{"Penis"}      // WorldName contains a list of the world names
-var WorldChannelCount = [WorldCount]byte{19}     // WorldChannelCount contains a list of the channel count for each world
-var WorldId = [WorldCount]int8{0}                // WorldId contains a list of the world id's
-var WorldRibbon = [WorldCount]byte{0}            // WorldRibbon contains a list of each world's ribbon. 0 = None, 1 = E, 2 = N, 3 = H
-var WorldDefaultGMChat = [WorldCount]bool{false} // WorldDefaultGMChat contains a list of each world's GM chat enabled flag
+var WorldName = [WorldCount]string{"Penis", "Faggot"}   // WorldName contains a list of the world names
+var WorldChannelCount = [WorldCount]byte{2, 2}          // WorldChannelCount contains a list of the channel count for each world
+var WorldId = [WorldCount]int8{0, 1}                    // WorldId contains a list of the world id's
+var WorldRibbon = [WorldCount]byte{0, 1}                // WorldRibbon contains a list of each world's ribbon. 0 = None, 1 = E, 2 = N, 3 = H
+var WorldDefaultGMChat = [WorldCount]bool{false, false} // WorldDefaultGMChat contains a list of each world's GM chat enabled flag
 
-var WorldMobExp = [WorldCount]int32{1}   // WorldMobExp is a list of each world's mob exp rate
-var WorldQuestExp = [WorldCount]int32{1} // WorldQuestExp is a list of each world's quest exp rate
-var WorldMeso = [WorldCount]int32{1}     // WorldMeso is a list of each world's mob meso drop rate
-var WorldDrop = [WorldCount]int32{1}     // WorldDrop is a list of each world's drop rate
+var WorldMobExp = [WorldCount]int32{1, 2}   // WorldMobExp is a list of each world's mob exp rate
+var WorldQuestExp = [WorldCount]int32{1, 2} // WorldQuestExp is a list of each world's quest exp rate
+var WorldMeso = [WorldCount]int32{1, 2}     // WorldMeso is a list of each world's mob meso drop rate
+var WorldDrop = [WorldCount]int32{1, 2}     // WorldDrop is a list of each world's drop rate
 
-var WorldMaxCharSlots = [WorldCount]byte{6}        // WorldMaxCharSlots is a list of each world's maximum char slots
-var WorldDefaultCharSlots = [WorldCount]byte{3}    // WorldDefaultCharSlots is a list of each world's initial char slots
-var WorldDefaultStorageSlots = [WorldCount]byte{4} // WorldDefaultStorageSlots is a list of each world's max storage slots
-var WorldMaxStats = [WorldCount]uint16{999}        // WorldMaxStats is a list of each world's stat limit
-var WorldMaxMultiLevel = [WorldCount]byte{1}       // WorldMaxMultiLevel is a list of each world's max multiple level gain
+var WorldMaxCharSlots = [WorldCount]byte{6, 6}        // WorldMaxCharSlots is a list of each world's maximum char slots
+var WorldDefaultCharSlots = [WorldCount]byte{3, 3}    // WorldDefaultCharSlots is a list of each world's initial char slots
+var WorldDefaultStorageSlots = [WorldCount]byte{4, 4} // WorldDefaultStorageSlots is a list of each world's max storage slots
+var WorldMaxStats = [WorldCount]uint16{999, 999}      // WorldMaxStats is a list of each world's stat limit
+var WorldMaxMultiLevel = [WorldCount]byte{1, 1}       // WorldMaxMultiLevel is a list of each world's max multiple level gain
 
-var WorldListenPort = [WorldCount]int16{7100} // WorldListenPort is a list of each world's listen port
+var WorldListenPort = [WorldCount]int16{7100, 7200} // WorldListenPort is a list of each world's listen port
 
 // WorldEventMessage is a list of each world's event message
-var WorldEventMessage = [WorldCount]string{"Top fucking kek"}
+var WorldEventMessage = [WorldCount]string{"Top fucking kek", "Moe~"}
 
 // WorldScrollingHeader is a list of each world's scrolling header message
-var WorldScrollingHeader = [WorldCount]string{"Totsugeki~"}
+var WorldScrollingHeader = [WorldCount]string{"Totsugeki~", "Lolis FTW"}
 
-var WorldMaxPlayerLoad = [WorldCount]int32{1000} // WorldMaxPlayerLoad is a list of each world's player cap
+var WorldMaxPlayerLoad = [WorldCount]int32{1000, 1000} // WorldMaxPlayerLoad is a list of each world's player cap
 
 // WorldFameDelay contains how many seconds you need to wait before you can fame someone for each world
-var WorldFameDelay = [WorldCount]int64{86400}
+var WorldFameDelay = [WorldCount]int64{86400, 86400}
 
 // WorldFameDelay contains how many seconds you need to wait before you can fame the same person again for each world
-var WorldFameResetTime = [WorldCount]int64{2592000}
+var WorldFameResetTime = [WorldCount]int64{2592000, 2592000}
 
 // WorldMapUnloadTime contains the map unload time in seconds for each world
-var WorldMapUnloadTime = [WorldCount]int64{3600}
+var WorldMapUnloadTime = [WorldCount]int64{3600, 3600}
 
 // WorldPianusChannels contains a list of channels where Pianus spawns, 255 = all
+// TODO: change to signed byte
 var WorldPianusChannels = [WorldCount][]byte{
+	[]byte{0xFF},
 	[]byte{0xFF},
 }
 
 // WorldPapChannels contains a list of channels where Papulatus spawns, 255 = all
 var WorldPapChannels = [WorldCount][]byte{
 	[]byte{0xFF},
+	[]byte{0xFF},
 }
 
 // WorldZakumChannels contains a list of channels where Zakum spawns, 255 = all
 var WorldZakumChannels = [WorldCount][]byte{
+	[]byte{4, 5, 6},
 	[]byte{4, 5, 6},
 }
 
 // WorldHorntailChannels contains a list of channels where Horntail spawns, 255 = all
 var WorldHorntailChannels = [WorldCount][]byte{
 	[]byte{8},
+	[]byte{8},
 }
 
 // WorldMaxPianusAttempts contains a list of the maximum Pianus attempts allowed on each world, -1 = unlimited
-var WorldMaxPianusAttempts = [WorldCount]int16{-1}
+var WorldMaxPianusAttempts = [WorldCount]int16{-1, -1}
 
 // WorldMaxPapAttempts contains a list of the maximum Pianus attempts allowed on each world, -1 = unlimited
-var WorldMaxPapAttempts = [WorldCount]int16{2}
+var WorldMaxPapAttempts = [WorldCount]int16{2, 2}
 
 // WorldMaxZakumAttempts contains a list of the maximum Pianus attempts allowed on each world, -1 = unlimited
-var WorldMaxZakumAttempts = [WorldCount]int16{2}
+var WorldMaxZakumAttempts = [WorldCount]int16{2, 2}
 
 // WorldMaxHorntailAttempts contains a list of the maximum Pianus attempts allowed on each world, -1 = unlimited
-var WorldMaxHorntailAttempts = [WorldCount]int16{-1}
+var WorldMaxHorntailAttempts = [WorldCount]int16{-1, -1}
