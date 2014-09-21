@@ -40,11 +40,21 @@ func HandleInter(con *worlds.Connection, p maplelib.Packet) (handled bool, err e
 		if header != interserver.IOAuth {
 			return false, errors.New(fmt.Sprintf("Tried to send %v without being authenticated", p))
 		}
-		err = con.CheckAuth(it)
+
+		var servertype byte = 255
+		servertype, err = con.CheckAuth(it)
 		if err != nil {
 			return
 		}
-		err = worlds.AddWorldServer(con)
+
+		switch servertype {
+		case interserver.WorldServer:
+			err = worlds.AddWorldServer(con)
+		case interserver.ChannelServer:
+			err = worlds.AddChannelServer(con)
+		default:
+			err = errors.New("Unknown server type")
+		}
 
 		return true, nil
 	}

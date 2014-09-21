@@ -35,6 +35,7 @@ func (w *World) PlayerLoad() int32        { return w.playerLoad }
 func (w *World) WorldCon() *Connection    { return w.worldcon }
 func (w *World) Conf() *config.WorldConf  { return w.config }
 func (w *World) Channel(id int8) *Channel { return w.channels[id] }
+func (w *World) ChannelCount() byte       { return byte(len(w.channels)) }
 
 func (w *World) SetConnected(connected bool)      { w.connected = connected }
 func (w *World) SetId(id int8)                    { w.id = id }

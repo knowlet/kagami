@@ -31,6 +31,7 @@ import (
 )
 
 const handshakeHeader = 0x000D
+const debugPackets = false // enable this to see all packet traffic in real time
 
 // A IOError is returned when an I/O error occurs while reading/writing data from the socket
 type IOError struct {
@@ -144,7 +145,6 @@ func NewEncryptedConnection(con net.Conn, isTestServer, isclient bool) (c *Encry
 		c.sendHandshake(isTestServer)
 	} else {
 		// wait for handshake
-		c.renewRecvTimeout()
 		hs := maplelib.Packet(make([]byte, 15))
 		err := c.tryRead(hs)
 		if err != nil {
@@ -287,11 +287,8 @@ func (c *EncryptedConnection) tryRead(p []byte) (err error) {
 			err = errors.New("Read timeout")
 		}
 	} else {
-		c.renewRecvTimeout()
+		// no recv timeout for clients
 		n, err := c.Conn().Read(p)
-		if isTimeout(err) {
-			err = errors.New("Read timeout")
-		}
 		if n != cap(p) || err != nil {
 			return IOError{n, err}
 		}
@@ -332,16 +329,25 @@ func (c *EncryptedConnection) RecvPacket() (packet maplelib.Packet, err error) {
 	c.lastactive = time.Now().Unix() // reset idle timer
 
 	packet, err = maplelib.Packet(data), nil
+	if debugPackets {
+		fmt.Println(c.Conn().RemoteAddr(), "<-", packet)
+	}
 	return
 }
 
 // SendPacket encrypts and sends the given packet. NOTE: the packet must have
 // a 4 byte placeholder at the beginning for the encrypted header
 func (c *EncryptedConnection) SendPacket(p maplelib.Packet) error {
+	if debugPackets {
+		fmt.Println(c.Conn().RemoteAddr(), "->", p)
+	}
 	byteslice := []byte(p)
 	c.SendCrypt().Encrypt(byteslice[:])
 
-	c.renewSendTimeout()
+	if !c.isclient {
+		c.renewSendTimeout()
+	}
+
 	n, err := c.Conn().Write(p)
 	if err != nil {
 		return IOError{n, err}

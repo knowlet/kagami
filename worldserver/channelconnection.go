@@ -13,25 +13,28 @@
    along with kagami. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package common
+package main
 
 import "net"
-import "github.com/Francesco149/kagami/common/interserver"
+import "github.com/Francesco149/kagami/common"
 
-// InterserverClient represent a connection to another component of the server.
+// ChannelConnection represent a connection accepted by the channel server.
 // It's a wrapper around EncryptedConnection specialized for inter-server communication.
 // It handles authentification through the internal password.
-type InterserverClient struct {
-	*EncryptedConnection // underlying encrypted connection
+type ChannelConnection struct {
+	*common.InterserverConnection // underlying encrypted connection
+	channelId                     int8
 }
 
-// NewInterserverClient initializes a new inter-server connection around a basic net.Conn
-func NewInterserverClient(con net.Conn, passwd string, serverType byte) *InterserverClient {
-	res := &InterserverClient{
-		EncryptedConnection: NewEncryptedConnection(con, false, true),
+func (c *ChannelConnection) SetChannelId(channelId int8) { c.channelId = channelId }
+func (c *ChannelConnection) ChannelId() int8             { return c.channelId }
+
+// NewChannelConnection initializes a new inter-server world connection around a basic net.Conn
+func NewChannelConnection(con net.Conn, passwd string) *ChannelConnection {
+	res := &ChannelConnection{
+		InterserverConnection: common.NewInterserverConnection(con, passwd),
+		channelId:             -1,
 	}
 
-	auth := interserver.Auth(passwd, serverType)
-	res.SendPacket(auth)
 	return res
 }

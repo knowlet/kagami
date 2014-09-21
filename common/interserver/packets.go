@@ -20,10 +20,17 @@ import (
 	"github.com/Francesco149/maplelib"
 )
 
+// Server types for Auth()
+const (
+	WorldServer   = 0
+	ChannelServer = 1
+)
+
 // Auth generates an inter-server authentication packet
-func Auth(passwd string) (p maplelib.Packet) {
+func Auth(passwd string, serverType byte) (p maplelib.Packet) {
 	p = packets.NewEncryptedPacket(IOAuth)
 	p.EncodeString(passwd)
+	p.Encode1(serverType)
 	return
 }
 
@@ -40,5 +47,22 @@ func ConnectingToChannel(channel int8, charId int32, ip []byte) (p maplelib.Pack
 func NoMoreWorlds() (p maplelib.Packet) {
 	p = packets.NewEncryptedPacket(IOWorldConnect)
 	p.Encode1s(-1)
+	return
+}
+
+// LoginChannelConnect returns a packet that notifies the channel
+// server that has requested to connect to the loginserver
+func LoginChannelConnect(worldId int8, ip []byte, port int16) (p maplelib.Packet) {
+	p = packets.NewEncryptedPacket(IOLoginChannelConnect)
+	p.Encode1s(worldId)
+	p.Append(ip)
+	p.Encode2s(port)
+	return
+}
+
+// RemoveChannel returns a packet that requests the loginserver to remove a channel
+func RemoveChannel(channelId int8) (p maplelib.Packet) {
+	p = packets.NewEncryptedPacket(IORemoveChannel)
+	p.Encode1s(channelId)
 	return
 }

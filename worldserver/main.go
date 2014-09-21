@@ -31,12 +31,57 @@ import (
 	"github.com/Francesco149/maplelib"
 )
 
-// TODO: everything
+// TODO: everything, this is just a temporary main that will get reoganized into multiple files as I add stuff
 
 var worldconf *config.WorldConf = nil
 var worldport int16 = -1
+var loginconn *common.InterserverClient = nil // connection to the loginserver
 
-func Handle(con *common.InterserverClient, p maplelib.Packet) (handled bool, err error) {
+// HandleChan handles packets exchanged between the worldserver and the channelserver
+func HandleChan(con *ChannelConnection, p maplelib.Packet) (handled bool, err error) {
+	it := p.Begin()
+	header, err := it.Decode2()
+	if err != nil {
+		return false, err
+	}
+
+	// check auth
+	if !con.Authenticated() {
+		if header != interserver.IOAuth {
+			return false, errors.New(fmt.Sprintf("Tried to send %v without being authenticated", p))
+		}
+
+		var servertype byte = 255
+		servertype, err = con.CheckAuth(it)
+		if err != nil {
+			return
+		}
+
+		switch servertype {
+		case interserver.ChannelServer: // we're only accepting channel serv connections here
+			// TODO: get first available channel
+			// TODO: generate channel port
+			// TODO: get external ip's
+			// TODO: register channel
+			// TODO: send channel connect packet to con
+			// TODO: sync channel connect
+			// TODO: send registerchannel to loginserv
+		default:
+			err = errors.New("Unknown server type")
+		}
+
+		return true, nil
+	}
+
+	switch header {
+	// TODO
+	}
+
+	return false, nil
+}
+
+// HandleLogin handles packets exchanged between the worldserver and the loginserver
+func HandleLogin(con *common.InterserverClient, p maplelib.Packet) (handled bool, err error) {
 	it := p.Begin()
 	header, err := it.Decode2()
 	if err != nil {
@@ -51,7 +96,8 @@ func Handle(con *common.InterserverClient, p maplelib.Packet) (handled bool, err
 	return false, nil
 }
 
-// handleWorldConnect handles a world connect packet
+// handleWorldConnect handles a world connect packet from the login server, which tells the worldserver
+// which world it will handle and provide the world configuration
 func handleWorldConnect(con *common.InterserverClient, it maplelib.PacketIterator) (handled bool, err error) {
 	handled = false
 	worldid, err := it.Decode1s()
@@ -74,8 +120,41 @@ func handleWorldConnect(con *common.InterserverClient, it maplelib.PacketIterato
 	fmt.Println("Handling world", worldid)
 	worldconf = conf
 	worldport = port
+	loginconn = con
 
-	// TODO: start accepting connections
+	// TODO: check if I need to store the loginserver's external ip address
+
+	// accept interserver chan connections in a separate thread
+	go common.Accept("chan", worldport,
+		func(con common.Connection, p maplelib.Packet) (bool, error) {
+			scon, ok := con.(*ChannelConnection)
+			if !ok {
+				return false, errors.New("Channel handler failed type assertion")
+			}
+			return HandleChan(scon, p)
+		},
+		func(con net.Conn) common.Connection {
+			return NewChannelConnection(con, consts.InterServerPassword)
+		},
+		func(con common.Connection) {
+			scon, ok := con.(*ChannelConnection)
+			if !ok {
+				panic(errors.New("Channel handler failed type assertion on disconnect"))
+			}
+			deletechanid := scon.ChannelId()
+
+			if deletechanid == -1 {
+				return
+			}
+
+			fmt.Println("Removing channel", deletechanid)
+			if loginconn != nil {
+				loginconn.SendPacket(interserver.RemoveChannel(deletechanid))
+			}
+
+			// TODO: disconnect players
+			// TODO: remove from channel list
+		})
 
 	fmt.Println("World server is running!")
 	return
@@ -92,11 +171,11 @@ func main() {
 		func(con common.Connection, p maplelib.Packet) (bool, error) {
 			scon, ok := con.(*common.InterserverClient)
 			if !ok {
-				return false, errors.New("Loginserver handler failed type assertion")
+				panic(errors.New("Login handler failed type assertion"))
 			}
-			return Handle(scon, p)
+			return HandleLogin(scon, p)
 		},
 		func(con net.Conn) common.Connection {
-			return common.NewInterserverClient(con, consts.InterServerPassword)
+			return common.NewInterserverClient(con, consts.InterServerPassword, interserver.WorldServer)
 		})
 }

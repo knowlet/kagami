@@ -23,6 +23,7 @@ import (
 )
 
 import (
+	"github.com/Francesco149/kagami/common"
 	"github.com/Francesco149/kagami/common/interserver"
 	"github.com/Francesco149/kagami/common/packets"
 	"github.com/Francesco149/kagami/loginserver/client"
@@ -75,6 +76,8 @@ func AddWorldServer(con *Connection) error {
 	bindworld.SetWorldCon(con)
 	bindworld.SetConnected(true)
 
+	// TODO: store external ip of the worldserver? check vana
+
 	err := con.SendPacket(worldConnect(bindworld))
 	if err != nil {
 		return err
@@ -83,11 +86,46 @@ func AddWorldServer(con *Connection) error {
 	return nil
 }
 
+// AddChannelServer assigns a channel to the given channel server connection
+func AddChannelServer(con *Connection) error {
+	var targetworld *World = nil
+	var targetworldid int8 = -1
+
+	worldIp := make([]byte, 4)
+
+	// find a connected world that has room for channels
+	for _, world := range worlds {
+		if world.ChannelCount() < world.Conf().MaxChannels() && world.Connected() {
+			targetworld = world
+			break
+		}
+	}
+
+	if targetworld == nil {
+		con.SendPacket(interserver.LoginChannelConnect(targetworldid, worldIp, 0))
+		return errors.New("No more channels to assign.")
+	}
+
+	targetworldid = targetworld.Id()
+	// TODO: resolve this to the external ip address to actually make it work online
+	// FIXME
+	worldIp = common.RemoteAddrToBytes(con.Conn().RemoteAddr().String())
+	if len(worldIp) != 4 {
+		return errors.New("Ipv6 not supported")
+	}
+
+	err := con.SendPacket(interserver.LoginChannelConnect(targetworldid, worldIp, targetworld.Port()))
+	if err != nil {
+		return err
+	}
+	fmt.Println(con.Conn().RemoteAddr(), "assigned to world", targetworldid, "'s channels")
+	return nil
+}
+
 // showWorld returns a packet to send world data to a client for the world list
 // Send one for each world followed by a WorldListEnd() packet.
 func showWorld(w *World) (p maplelib.Packet) {
-	p.Encode4(0x00000000)
-	p.Encode2(packets.OServerList)
+	p = packets.NewEncryptedPacket(packets.OServerList)
 	p.Encode1s(w.Id())
 	p.EncodeString(fmt.Sprintf("%s World %d", w.Conf().Name(), w.Id()))
 	p.Encode1(w.Conf().Ribbon())

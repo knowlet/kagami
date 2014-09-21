@@ -47,8 +47,9 @@ func (c *InterserverConnection) Authenticated() bool         { return c.authenti
 func (c *InterserverConnection) SetPassword(password string) { c.password = password }
 
 // CheckAuth parses an inter-server auth packet and sets the connection as authenticated if successful
-func (c *InterserverConnection) CheckAuth(it maplelib.PacketIterator) (err error) {
+func (c *InterserverConnection) CheckAuth(it maplelib.PacketIterator) (serverType byte, err error) {
 	password, err := it.DecodeString()
+	serverType, err = it.Decode1()
 	if err != nil {
 		return
 	}
@@ -62,5 +63,5 @@ func (c *InterserverConnection) CheckAuth(it maplelib.PacketIterator) (err error
 
 	c.authenticated = true
 	fmt.Println(c.Conn().RemoteAddr(), "authenticated inter-server connection")
-	return nil
+	return
 }

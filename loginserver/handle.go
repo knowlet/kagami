@@ -18,8 +18,7 @@ package main
 import (
 	"errors"
 	"fmt"
-	"net"
-	"strings"
+	//"strings"
 	"time"
 )
 
@@ -114,7 +113,7 @@ func handleLoginPassword(con *client.Connection, it maplelib.PacketIterator) (ha
 		return
 	}
 
-	ip := strings.Split(con.Conn().RemoteAddr().String(), ":")[0]
+	ip := common.RemoteAddrToIp(con.Conn().RemoteAddr().String())
 	// we don't need the extra data
 
 	if len(user) > consts.MaxNameSize || len(user) < consts.MinNameSize {
@@ -523,8 +522,8 @@ func handleCharlistRequest(con *client.Connection, it maplelib.PacketIterator) (
 	// check if channel is online / exists
 	ch := w.Channel(channelId)
 	if ch == nil {
-		err = errors.New(fmt.Sprintf("Tried to select channel %d"+
-			"on world %d, but the channel is offline"+
+		err = errors.New(fmt.Sprintf("Tried to select channel %d "+
+			"on world %d, but the channel is offline "+
 			"or does not exist", channelId, con.WorldId()))
 		return
 	}
@@ -604,10 +603,8 @@ func handleCharSelect(con *client.Connection, it maplelib.PacketIterator) (handl
 	// notify world server that we're transferring this player from the loginserver to the worldserver
 	w := worlds.Get(con.WorldId())
 	// TODO: inter-server communication
-	ip := strings.Split(con.Conn().RemoteAddr().String(), ":")[0]
-	w.WorldCon().SendPacket(
-		interserver.ConnectingToChannel(con.Channel(), charId,
-			[]byte(ip)))
+	ip := common.RemoteAddrToIp(con.Conn().RemoteAddr().String())
+	w.WorldCon().SendPacket(interserver.ConnectingToChannel(con.Channel(), charId, []byte(ip)))
 
 	// TODO: match user's subnet and connect to 127.0.0.1 if they are on the same subnet
 
@@ -617,15 +614,9 @@ func handleCharSelect(con *client.Connection, it maplelib.PacketIterator) (handl
 	ch := w.Channel(con.Channel())
 	if ch != nil {
 		port = ch.Port()
-		addr := w.WorldCon().Conn().RemoteAddr()
-		a, ok := addr.(*net.TCPAddr)
-		if !ok {
-			err = errors.New("The world's connection doesn't " +
-				"match the correct ip address type")
-			return
-		}
-
-		chanIp = a.IP[:]
+		// TODO: resolve this to the external ip address to actually make it work online
+		// FIXME
+		chanIp = common.RemoteAddrToBytes(w.WorldCon().Conn().RemoteAddr().String())
 		if len(chanIp) != 4 {
 			err = errors.New("Ipv6 not supported")
 			return

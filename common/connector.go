@@ -22,10 +22,9 @@ import "fmt"
 // makeConnection is a connection factory function that must return a connection that implements common.Connection.
 // Once a connection is estabilished, a loop will run to handle its packets, blocking the current thread.
 func Connect(name, ipport string, handler PacketHandler, makeConnection ConnectionFactory) {
-	fmt.Println("Connecting to", name, ipport)
 	con, err := Dial(ipport)
 	if err != nil {
-		fmt.Println("Failed to connect: ", err)
+		fmt.Println("Failed to connect to", name, ipport, ": ", err)
 		return
 	}
 

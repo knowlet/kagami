@@ -18,7 +18,7 @@ package worlds
 import "net"
 import "github.com/Francesco149/kagami/common"
 
-// InterserverConnection represent a connection accepted from another component of the server.
+// worlds.Connection represent a connection accepted by the channel server or world server.
 // It's a wrapper around EncryptedConnection specialized for inter-server communication.
 // It handles authentification through the internal password.
 type Connection struct {

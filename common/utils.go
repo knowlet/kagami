@@ -19,6 +19,8 @@ import (
 	"crypto/rand"
 	"crypto/sha512"
 	"fmt"
+	"strconv"
+	"strings"
 )
 
 import "github.com/Francesco149/kagami/common/consts"
@@ -72,4 +74,36 @@ func UnixToQuestTimestamp(unixSeconds int64) uint64 {
 	time := millisecs / 1000 / 60
 	// what the fuck
 	return uint64(float64(time)*0.1396987) + questUnixAge
+}
+
+// RemoteAddrToIp returns the ip of a ip:port string
+func RemoteAddrToIp(addr string) string {
+	return strings.Split(addr, ":")[0]
+}
+
+// RemoteAddrToPort returns the port of a ip:port string
+func RemoteAddrToPort(addr string) string {
+	return strings.Split(addr, ":")[1]
+}
+
+// RemoteAddrToBytes converts a xxx.xxx.xxx.xxx:port string to an array of bytes that contains the ip
+func RemoteAddrToBytes(addr string) (res []byte) {
+	addr = RemoteAddrToIp(addr)
+	split := strings.Split(addr, ".")
+	res = make([]byte, len(split))
+
+	for i := 0; i < len(split); i++ {
+		tmp, err := strconv.Atoi(split[i])
+		if err != nil {
+			return nil
+		}
+
+		if tmp > 255 || tmp < 0 {
+			return nil
+		}
+
+		res[i] = byte(tmp)
+	}
+
+	return
 }
