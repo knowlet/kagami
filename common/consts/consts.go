@@ -173,7 +173,7 @@ const BeginnersGuidebook = 4161001
 // Default Worlds --------------------------------------------------------------
 const WorldCount = 1 // WorldCount is the number of worlds that will connect to the loginserver
 
-var WorldName = [WorldCount]string{"Scania"}     // WorldName contains a list of the world names
+var WorldName = [WorldCount]string{"Penis"}      // WorldName contains a list of the world names
 var WorldChannelCount = [WorldCount]byte{19}     // WorldChannelCount contains a list of the channel count for each world
 var WorldId = [WorldCount]int8{0}                // WorldId contains a list of the world id's
 var WorldRibbon = [WorldCount]byte{0}            // WorldRibbon contains a list of each world's ribbon. 0 = None, 1 = E, 2 = N, 3 = H

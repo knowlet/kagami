@@ -27,7 +27,7 @@ import (
 // OwnsCharacter checks if the user owns the given character id
 func OwnsCharacter(con *client.Connection, charId int32) bool {
 	db := common.GetDB()
-	st, err := db.Prepare("SELECT 1 FROM characters WHERE id = ? AND user_id = ? LIMIT 1")
+	st, err := db.Prepare("SELECT 1 FROM characters WHERE character_id = ? AND user_id = ? LIMIT 1")
 	res, err := st.Run(charId, con.Id())
 	rows, err := res.GetRows()
 	if err != nil {

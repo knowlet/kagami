@@ -96,7 +96,7 @@ type CharData struct {
 }
 
 // EncodeStats serializes the character's stats to the given packet
-func (c *CharData) EncodeStats(p maplelib.Packet) {
+func (c *CharData) EncodeStats(p *maplelib.Packet) {
 	huehuehue := make([]byte, 24)
 	namelen := len(c.name)
 
@@ -144,11 +144,11 @@ func (c *CharData) EncodeStats(p maplelib.Packet) {
 }
 
 // EncodeEquips serializes the character's equips to a packet
-func (c *CharData) EncodeEquips(p maplelib.Packet) {
+func (c *CharData) EncodeEquips(p *maplelib.Packet) {
 	p.Encode1s(c.gender) // yes it repeats gender, skin, face, hair and idk why
 	p.Encode1s(c.skin)
 	p.Encode4s(c.face)
-	p.Encode1(0x01)
+	p.Encode1(0x00)
 	p.Encode4s(c.hair)
 
 	// I'm not sure how this all works but it's some logic to encode
@@ -212,7 +212,7 @@ func (c *CharData) EncodeEquips(p maplelib.Packet) {
 }
 
 // Encode encodes a charData object into a maplestory packet
-func (c *CharData) Encode(p maplelib.Packet) {
+func (c *CharData) Encode(p *maplelib.Packet) {
 	c.EncodeStats(p)
 	c.EncodeEquips(p)
 

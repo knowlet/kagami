@@ -10,7 +10,7 @@ Feature progress
 * Login - [done (video)](http://hnng.moe/f/5N)
 * MySQL - [done](http://www.hnng.moe/f/5H)
 * World / Channel Selection - [done (video)](http://hnng.moe/f/6N)
-* Character Selection / Creation / Deletion - WIP
+* Character Selection / Creation / Deletion - [done](http://hnng.moe/f/7l)
 * Handling Bans - [done](http://www.hnng.moe/f/5Q)
 * Getting in game - WIP
 
@@ -43,7 +43,7 @@ To compile the server, all you have to do is:
 
     go install github.com/Francesco149/kagami/...
 
-And then simply run loginserver and worldserver in your $GOPATH/bin directory.
+And then simply run loginserver, worldserver and as many channels servers as you like in your $GOPATH/bin directory.
     
 Documentation
 ============

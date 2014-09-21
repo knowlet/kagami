@@ -395,7 +395,7 @@ func sendWorldAllChars(worldId int8, charlist []*CharData) (p maplelib.Packet) {
 
 	// encode all characters
 	for _, char := range charlist {
-		char.Encode(p)
+		char.Encode(&p)
 	}
 
 	return
@@ -484,7 +484,7 @@ func sendWorldChars(charlist []*CharData, maxchars uint32) (p maplelib.Packet) {
 	// encode all characters
 	p.Encode1(byte(len(charlist)))
 	for _, char := range charlist {
-		char.Encode(p)
+		char.Encode(&p)
 	}
 
 	p.Encode4(maxchars)
@@ -664,7 +664,7 @@ func handleCheckCharName(con *client.Connection, it maplelib.PacketIterator) (ha
 func sendChar(char *CharData) (p maplelib.Packet) {
 	p = packets.NewEncryptedPacket(packets.OAddNewCharEntry)
 	p.Encode1(0x01) // success = true
-	char.Encode(p)
+	char.Encode(&p)
 	return
 }
 
@@ -810,14 +810,15 @@ func handleDeleteChar(con *client.Connection, it maplelib.PacketIterator) (handl
 	bdaycode, err := it.Decode4()
 	charid, err := it.Decode4s()
 	if err != nil {
-		return
+                err = con.SendPacket(packets.DeleteCharResponse(charid, packets.DeleteFail))
+                handled = err == nil
+                return
 	}
 
 	// trying to delete someone else's char
 	if !validators.OwnsCharacter(con, charid) {
-		err = errors.New(fmt.Sprintf(
-			"Tried to delete character %d which he doesn't own",
-			charid))
+		err = con.SendPacket(packets.DeleteCharResponse(charid, packets.DeleteFail))
+		handled = err == nil
 		return
 	}
 
@@ -851,7 +852,7 @@ func handleDeleteChar(con *client.Connection, it maplelib.PacketIterator) (handl
 	} else {
 		// TODO: remove character from guild
 		// TODO: delete pets
-		st, sterr := db.Prepare("DELETE FROM characters WHERE id = ?")
+		st, sterr := db.Prepare("DELETE FROM characters WHERE character_id = ?")
 		err = sterr
 		_, err = st.Run(charid)
 		if err != nil {
