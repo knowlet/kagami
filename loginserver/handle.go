@@ -663,7 +663,7 @@ func handleCheckCharName(con *client.Connection, it maplelib.PacketIterator) (ha
 // sendChar returns a packet that sends the information for a newly created character
 func sendChar(char *CharData) (p maplelib.Packet) {
 	p = packets.NewEncryptedPacket(packets.OAddNewCharEntry)
-	p.Encode1(0x01) // success = true
+	p.Encode1(0x00) // idk what this byte does
 	char.Encode(&p)
 	return
 }

@@ -264,16 +264,16 @@ func CharNameResponse(charName string, used bool) (p maplelib.Packet) {
 
 // Possible statuses for DeleteCharResponse
 const (
-	DeleteOk          = 0  // ok
-	DeleteFail        = 1  // failed to delete character
-	DeleteInvalidCode = 12 // invalid birthday
+	DeleteOk          = 0x00 // ok
+	DeleteFail        = 0x01 // failed to delete character
+	DeleteInvalidCode = 0x12 // invalid birthday
 )
 
 // DeleteCharResponse returns a char delete response packet
 // state:
 // DeleteOk = 0 // ok
 // DeleteFail = 1 // failed to delete character
-// DeleteInvalidCode = 12 // invalid birthday
+// DeleteInvalidCode = 0x12 // invalid birthday
 func DeleteCharResponse(id int32, state byte) (p maplelib.Packet) {
 	p = NewEncryptedPacket(ODeleteCharResponse)
 	p.Encode4(uint32(id))
