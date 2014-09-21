@@ -762,7 +762,7 @@ func handleCreateChar(con *client.Connection, it maplelib.PacketIterator) (handl
 	}
 
 	// get the newly created character's data
-	st, err = db.Prepare("SELECT FROM characters WHERE id = ?")
+	st, err = db.Prepare("SELECT * FROM characters WHERE character_id = ?")
 	res, err = st.Run(charid)
 	rows, err := res.GetRows()
 	if err != nil {
