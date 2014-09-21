@@ -13,13 +13,13 @@
    along with kagami. If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Package status contains various information about the current status of the world server 
+// Package status contains various information about the current status of the world server
 // such as world config, port and connections that are shared globally within the package
 package status
 
 import (
-        "github.com/Francesco149/kagami/common"
-        "github.com/Francesco149/kagami/common/config"
+	"github.com/Francesco149/kagami/common"
+	"github.com/Francesco149/kagami/common/config"
 )
 
 // TODO: move this stuff to channels.Connection?
@@ -28,9 +28,9 @@ var worldconf *config.WorldConf = nil
 var worldport int16 = -1
 var loginconn *common.InterserverClient = nil // connection to the loginserver
 
-func Conf() *config.WorldConf { return worldconf }
-func SetConf(c *config.WorldConf) { worldconf = c }
-func Port() int16 { return worldport }
-func SetPort(port int16) { worldport = port }
-func LoginConn() *common.InterserverClient { return loginconn }
+func Conf() *config.WorldConf                  { return worldconf }
+func SetConf(c *config.WorldConf)              { worldconf = c }
+func Port() int16                              { return worldport }
+func SetPort(port int16)                       { worldport = port }
+func LoginConn() *common.InterserverClient     { return loginconn }
 func SetLoginConn(c *common.InterserverClient) { loginconn = c }

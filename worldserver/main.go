@@ -25,33 +25,33 @@ import (
 
 import (
 	"github.com/Francesco149/kagami/common"
-	"github.com/Francesco149/kagami/common/packets"
 	"github.com/Francesco149/kagami/common/config"
 	"github.com/Francesco149/kagami/common/consts"
 	"github.com/Francesco149/kagami/common/interserver"
-	"github.com/Francesco149/kagami/worldserver/status"
+	"github.com/Francesco149/kagami/common/packets"
 	"github.com/Francesco149/kagami/worldserver/channels"
+	"github.com/Francesco149/kagami/worldserver/status"
 	"github.com/Francesco149/maplelib"
 )
 
 // TODO: everything, this is just a temporary main that will get reoganized into multiple files as I add stuff
 
 func makeChannelPort(chanid int8) int16 {
-        return status.Port() + int16(chanid) + 1        
+	return status.Port() + int16(chanid) + 1
 }
 
 // channelConnect returns a packet that respons to a channelserver connection request
 func channelConnect(channelId int8, port int16) (p maplelib.Packet) {
-        p = packets.NewEncryptedPacket(interserver.IOChannelConnect)
-        p.Encode1s(channelId)
-        p.Encode2s(port)
-        status.Conf().Encode(&p)
-        return
+	p = packets.NewEncryptedPacket(interserver.IOChannelConnect)
+	p.Encode1s(channelId)
+	p.Encode2s(port)
+	status.Conf().Encode(&p)
+	return
 }
 
 // HandleChan handles packets exchanged between the worldserver and the channelserver
 func HandleChan(con *channels.Connection, p maplelib.Packet) (handled bool, err error) {
-        handled = false
+	handled = false
 	it := p.Begin()
 	header, err := it.Decode2()
 	if err != nil {
@@ -75,13 +75,13 @@ func HandleChan(con *channels.Connection, p maplelib.Packet) (handled bool, err 
 		case interserver.ChannelServer: // we're only accepting channel serv connections here
 			available := channels.GetFirstAvailableId()
 			con.SetChannelId(available)
-			
+
 			if available == -1 {
-			        con.SendPacket(channelConnect(-1, 0))
-			        err = errors.New("No more channels available to assign.")
-			        return
+				con.SendPacket(channelConnect(-1, 0))
+				err = errors.New("No more channels available to assign.")
+				return
 			}
-			
+
 			chanport := makeChannelPort(available)
 			// TODO: get external ip
 			ipbytes := common.RemoteAddrToBytes(con.Conn().RemoteAddr().String())

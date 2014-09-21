@@ -30,15 +30,15 @@ type World struct {
 
 // NewWorld initializes and returns a World object
 func NewWorld(wconfig *config.WorldConf, wid int8, wport int16) *World {
-        return &World{
-                connected: false, 
-                id: wid, 
-                port: wport, 
-                playerLoad: 0, 
-                worldcon: nil, 
-                config: wconfig, 
-                channels: make(map[int8]*Channel), 
-        }
+	return &World{
+		connected:  false,
+		id:         wid,
+		port:       wport,
+		playerLoad: 0,
+		worldcon:   nil,
+		config:     wconfig,
+		channels:   make(map[int8]*Channel),
+	}
 }
 
 func (w *World) Connected() bool          { return w.connected }

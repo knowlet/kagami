@@ -17,25 +17,25 @@ package channels
 
 // Channel holds information about one channel and its population
 type Channel struct {
-        id int8 
-        port int16 
-        population int32 
-        con *Connection
+	id         int8
+	port       int16
+	population int32
+	con        *Connection
 }
 
 func NewChannel(ccon *Connection, cid int8, cport int16) *Channel {
-        return &Channel {
-                id: cid, 
-                port: cport, 
-                population: 0, 
-                con: ccon, 
-        }
+	return &Channel{
+		id:         cid,
+		port:       cport,
+		population: 0,
+		con:        ccon,
+	}
 }
 
-func (c *Channel) IncPopulation() { c.population++ }
-func (c *Channel) DecPopulation() { c.population-- }
-func (c *Channel) Population() int32 { return c.population }
+func (c *Channel) IncPopulation()          { c.population++ }
+func (c *Channel) DecPopulation()          { c.population-- }
+func (c *Channel) Population() int32       { return c.population }
 func (c *Channel) SetConn(con *Connection) { c.con = con }
-func (c *Channel) Conn() *Connection { return c.con }
-func (c *Channel) SetPort(port int16) { c.port = port }
-func (c *Channel) Port() int16 { return c.port }
+func (c *Channel) Conn() *Connection       { return c.con }
+func (c *Channel) SetPort(port int16)      { c.port = port }
+func (c *Channel) Port() int16             { return c.port }

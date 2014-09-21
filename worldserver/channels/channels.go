@@ -17,53 +17,53 @@
 package channels
 
 import (
-        "github.com/Francesco149/maplelib"
-        "github.com/Francesco149/kagami/worldserver/status"
+	"github.com/Francesco149/kagami/worldserver/status"
+	"github.com/Francesco149/maplelib"
 )
 
 var channels = make(map[int8]*Channel) // channels mapped by id
 
 // channels.Add creates and adds a new channel to the list
 func Add(con *Connection, chanid int8, chanip []byte, port int16) {
-        // TODO: resolve newchan's external ip
-        channels[chanid] = NewChannel(con, chanid, port)
+	// TODO: resolve newchan's external ip
+	channels[chanid] = NewChannel(con, chanid, port)
 }
 
 // channels.Remove removes a channel from the list
 func Remove(chanid int8) {
-        delete(channels, chanid)        
+	delete(channels, chanid)
 }
 
 // channels.Get gets a channel by id. Returns nil if the id doesn't exist.
 func Get(chanid int8) *Channel {
-        return channels[chanid]        
+	return channels[chanid]
 }
 
 // channels.SendToChannelList sends a packet to a list of channel id's
 func SendToChannelList(channelids []int8, p maplelib.Packet) {
-        for _, id := range channelids {
-                Get(id).Conn().SendPacket(p)
-        }
+	for _, id := range channelids {
+		Get(id).Conn().SendPacket(p)
+	}
 }
 
 // channels.SendToAllChannels sends a packet to all of the channels
 func SendToAllChannels(p maplelib.Packet) {
-        for _, ch := range channels {
-                ch.Conn().SendPacket(p)        
-        }
+	for _, ch := range channels {
+		ch.Conn().SendPacket(p)
+	}
 }
 
 // channels.GetFirstAvailableId returns the first available channel id
 // returns -1 if there are no more available channel id's
 func GetFirstAvailableId() int8 {
-        var id, max int8 = -1, int8(status.Conf().MaxChannels())
-        
-        for i := int8(0); i < max; i++ {
-                if Get(i) == nil { // find channel id's that are still not mapped
-                        id = i
-                        break
-                }
-        }
-        
-        return id
+	var id, max int8 = -1, int8(status.Conf().MaxChannels())
+
+	for i := int8(0); i < max; i++ {
+		if Get(i) == nil { // find channel id's that are still not mapped
+			id = i
+			break
+		}
+	}
+
+	return id
 }

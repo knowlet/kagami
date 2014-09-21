@@ -23,10 +23,10 @@ type Channel struct {
 
 // NewChannel creates and returns a new channel object
 func NewChannel(chanport int16) *Channel {
-        return &Channel{
-                port: chanport, 
-                population: 0, 
-        }
+	return &Channel{
+		port:       chanport,
+		population: 0,
+	}
 }
 
 func (c *Channel) Port() int16             { return c.port }

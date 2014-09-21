@@ -51,7 +51,7 @@ func Handle(con *common.InterserverClient, p maplelib.Packet) (handled bool, err
 	case interserver.IOLoginChannelConnect:
 		return handleLoginChannelConnect(con, it)
 	case interserver.IOChannelConnect:
-	        return handleChannelConnect(con, it)
+		return handleChannelConnect(con, it)
 	}
 
 	return false, nil
@@ -112,34 +112,34 @@ func handleLoginChannelConnect(con *common.InterserverClient, it maplelib.Packet
 // handleChannelConnect handles a worldserver channel connect packet
 // which tells the channel server which channel it will be handling
 func handleChannelConnect(con *common.InterserverClient, it maplelib.PacketIterator) (handled bool, err error) {
-        handled = false
-        
-        chanid, err := it.Decode1s()
-        if err != nil {
-                return        
-        }
-        
-        if chanid == -1 {
-                err = errors.New("No channel to handle")
-                return
-        }
-        
-        port, err := it.Decode2s()
-        conf, err := config.DecodeWorldConf(&it)
-        if err != nil {
-                return        
-        }
-        
-        fmt.Println("Handling channel", chanid, "on port", port)
-        channelChanId = chanid
-        channelPort = port
-        channelWorldConf = conf
-        // TODO: set map unload time
-        // TODO: start listening for players on channelPort
-        fmt.Println("Channel server is running!")
-        
-        handled = err == nil
-        return
+	handled = false
+
+	chanid, err := it.Decode1s()
+	if err != nil {
+		return
+	}
+
+	if chanid == -1 {
+		err = errors.New("No channel to handle")
+		return
+	}
+
+	port, err := it.Decode2s()
+	conf, err := config.DecodeWorldConf(&it)
+	if err != nil {
+		return
+	}
+
+	fmt.Println("Handling channel", chanid, "on port", port)
+	channelChanId = chanid
+	channelPort = port
+	channelWorldConf = conf
+	// TODO: set map unload time
+	// TODO: start listening for players on channelPort
+	fmt.Println("Channel server is running!")
+
+	handled = err == nil
+	return
 }
 
 func main() {

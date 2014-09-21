@@ -216,7 +216,7 @@ func handleLoginPassword(con *client.Connection, it maplelib.PacketIterator) (ha
 			// store account info obtained from the database
 			dbpassword := rows[0].Str(colpassword)
 			dbsalt := rows[0].Str(colsalt)
-			
+
 			userid = int32(rows[0].Int(coluserid))
 			online = rows[0].Int(colonline)
 			banned = rows[0].Int(colbanned)
@@ -810,9 +810,9 @@ func handleDeleteChar(con *client.Connection, it maplelib.PacketIterator) (handl
 	bdaycode, err := it.Decode4()
 	charid, err := it.Decode4s()
 	if err != nil {
-                err = con.SendPacket(packets.DeleteCharResponse(charid, packets.DeleteFail))
-                handled = err == nil
-                return
+		err = con.SendPacket(packets.DeleteCharResponse(charid, packets.DeleteFail))
+		handled = err == nil
+		return
 	}
 
 	// trying to delete someone else's char
