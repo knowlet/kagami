@@ -27,7 +27,7 @@ CREATE TABLE `accounts` (
   `ban_reason` tinyint(2) unsigned DEFAULT NULL,
   `ban_reason_message` varchar(255) DEFAULT NULL,
   `last_login` datetime DEFAULT NULL,
-  `creation_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `creation_date` datetime DEFAULT NULL,
   `admin` tinyint(1) NOT NULL DEFAULT '0',
   `gm_level` tinyint(4) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),

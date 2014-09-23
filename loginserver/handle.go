@@ -155,7 +155,8 @@ func handleLoginPassword(con *client.Connection, it maplelib.PacketIterator) (ha
 	// account not found, see if we can autoregister else send login failed
 	if len(rows) == 0 {
 		if consts.AutoRegister {
-			st, err = db.Prepare("INSERT INTO accounts(username, password, char_delete_password) VALUES(?, ?, 11111111)")
+			st, err = db.Prepare("INSERT INTO accounts(username, password, char_delete_password, creation_date) " + 
+				"VALUES(?, ?, 11111111, NOW())")
 			_, err = st.Run(user, pass)
 			// auto registrations won't hash the password right away to save server load
 			// it will be hashed the first time they log in
