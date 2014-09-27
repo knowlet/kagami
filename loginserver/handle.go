@@ -155,7 +155,7 @@ func handleLoginPassword(con *client.Connection, it maplelib.PacketIterator) (ha
 	// account not found, see if we can autoregister else send login failed
 	if len(rows) == 0 {
 		if consts.AutoRegister {
-			st, err = db.Prepare("INSERT INTO accounts(username, password, char_delete_password, creation_date) " + 
+			st, err = db.Prepare("INSERT INTO accounts(username, password, char_delete_password, creation_date) " +
 				"VALUES(?, ?, 11111111, NOW())")
 			_, err = st.Run(user, pass)
 			// auto registrations won't hash the password right away to save server load
@@ -388,7 +388,7 @@ func handleServerStatusRequest(con *client.Connection, it maplelib.PacketIterato
 
 // sendWorldAllChars returns a packet that sends the characters list for one world to the client
 // when "show all chars" has been requested
-func sendWorldAllChars(worldId int8, charlist []*CharData) (p maplelib.Packet) {
+func sendWorldAllChars(worldId int8, charlist []*common.CharData) (p maplelib.Packet) {
 	p = packets.NewEncryptedPacket(packets.OAllCharlist)
 	p.Encode1(0x00)
 	p.Encode1s(worldId)
@@ -423,7 +423,7 @@ func handleViewAllChar(con *client.Connection) (handled bool, err error) {
 
 	colworldid := res.Map("world_id")
 	charcount := uint32(0)
-	charmap := make(map[int8][]*CharData) // char list of each world mapped by world id
+	charmap := make(map[int8][]*common.CharData) // char list of each world mapped by world id
 
 	// loop chars in rows and append to the map
 	for _, row := range rows {
@@ -436,8 +436,8 @@ func handleViewAllChar(con *client.Connection) (handled bool, err error) {
 		}
 
 		// append character to the map
-		var cdata *CharData
-		cdata, err = GetCharDataFromDBRow(row, res)
+		var cdata *common.CharData
+		cdata, err = common.GetCharDataFromDBRow(row, res)
 		if err != nil {
 			return
 		}
@@ -478,7 +478,7 @@ func handleRelog(con *client.Connection) (handled bool, err error) {
 
 // sendWorldChars returns a packet that sends the characters list for one world to the client
 // after the user selects a channel
-func sendWorldChars(charlist []*CharData, maxchars uint32) (p maplelib.Packet) {
+func sendWorldChars(charlist []*common.CharData, maxchars uint32) (p maplelib.Packet) {
 	p = packets.NewEncryptedPacket(packets.OCharList)
 	p.Encode1(0x00)
 
@@ -547,12 +547,12 @@ func handleCharlistRequest(con *client.Connection, it maplelib.PacketIterator) (
 		return
 	}
 
-	chars := make([]*CharData, len(rows))
+	chars := make([]*common.CharData, len(rows))
 
 	for i, row := range rows {
 		// append character to the array
-		var cdata *CharData
-		cdata, err = GetCharDataFromDBRow(row, res)
+		var cdata *common.CharData
+		cdata, err = common.GetCharDataFromDBRow(row, res)
 		if err != nil {
 			return
 		}
@@ -662,7 +662,7 @@ func handleCheckCharName(con *client.Connection, it maplelib.PacketIterator) (ha
 }
 
 // sendChar returns a packet that sends the information for a newly created character
-func sendChar(char *CharData) (p maplelib.Packet) {
+func sendChar(char *common.CharData) (p maplelib.Packet) {
 	p = packets.NewEncryptedPacket(packets.OAddNewCharEntry)
 	p.Encode1(0x00) // idk what this byte does
 	char.Encode(&p)
@@ -775,7 +775,7 @@ func handleCreateChar(con *client.Connection, it maplelib.PacketIterator) (handl
 		return
 	}
 
-	thechar, err := GetCharDataFromDBRow(rows[0], res)
+	thechar, err := common.GetCharDataFromDBRow(rows[0], res)
 	if err != nil {
 		return
 	}

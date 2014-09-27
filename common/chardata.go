@@ -13,7 +13,7 @@
    along with kagami. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package main
+package common
 
 import (
 	"errors"
@@ -21,7 +21,6 @@ import (
 )
 
 import (
-	"github.com/Francesco149/kagami/common"
 	"github.com/Francesco149/kagami/common/consts"
 	"github.com/Francesco149/maplelib"
 	"github.com/ziutek/mymysql/mysql"
@@ -37,7 +36,7 @@ type CharEquipData struct {
 // GetCharEquipsFromDB retrieves all of the given character's equips from
 // the database and returns them as an array
 func GetCharEquipsFromDB(characterId int32) (res []*CharEquipData, err error) {
-	db := common.GetDB()
+	db := GetDB()
 	st, err := db.Prepare("SELECT item_id, slot FROM items " +
 		"WHERE character_id = ? AND inv = ? AND slot < 0 " +
 		"ORDER BY slot ASC")

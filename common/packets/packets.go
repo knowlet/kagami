@@ -17,6 +17,9 @@ package packets
 
 import "github.com/Francesco149/maplelib"
 
+// ***********************************************************************
+// Login Server
+
 // NewEncryptedPacket creates a new packet and appends a placeholder for
 // the encrypted header plus the given header to it
 func NewEncryptedPacket(header uint16) (p maplelib.Packet) {
@@ -294,4 +297,62 @@ func PinAssigned() (p maplelib.Packet) {
 	p = NewEncryptedPacket(OPinAssigned)
 	p.Encode1(0x01)
 	return
+}
+
+// ***********************************************************************
+// Channel Server
+
+// Possible values for msgtype in ServerMessage()
+const (
+	ServerMessageNotice          = 0 // [Notice]
+	ServerMessagePopup           = 1 // Popup
+	ServerMessageMega            = 2 // Megaphone
+	ServerMessageSmega           = 3 // Super Megaphone
+	ServerMessageScrollingHeader = 4 // Scrolling header
+	ServerMessagePinkText        = 5 // Pink text
+	ServerMessageLightBlueText   = 6 // Light blue text
+)
+
+/*
+	ServerMessage returns a server message packet
+
+	Possible values for msgtype:
+	ServerMessageNotice = 0 // [Notice]
+	ServerMessagePopup = 1 // Popup
+	ServerMessageMega = 2 // Megaphone
+	ServerMessageSmega = 3 // Super Megaphone
+	ServerMessageScrollingHeader = 4 // Scrolling header
+	ServerMessagePinkText = 5 // Pink text
+	ServerMessageLightBlueText = 6 // Light blue text
+*/
+func ServerMessage(msgtype, channel int8, message string,
+	isScrollingHeader bool, megaEar bool) (p maplelib.Packet) {
+
+	p = NewEncryptedPacket(OServerMessage)
+	p.Encode1s(msgtype)
+
+	if isScrollingHeader {
+		p.Encode1(0x01)
+	}
+
+	p.EncodeString(message)
+
+	if msgtype == ServerMessageSmega {
+		p.Encode1s(channel)
+		var tmp byte
+		if megaEar {
+			tmp = 1
+		} else {
+			tmp = 0
+		}
+		p.Encode1(tmp)
+	}
+
+	return
+}
+
+// ScrollingHeader returns a packet that
+// updates the yellow scrolling header for the player
+func ScrollingHeader(msg string) maplelib.Packet {
+	return ServerMessage(ServerMessageScrollingHeader, 0, msg, true, false)
 }

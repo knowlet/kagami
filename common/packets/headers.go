@@ -36,6 +36,10 @@ const (
 	ORelogResponse      = 0x0016
 	OGenderDone         = 0x0004
 	OPinAssigned        = 0x0007
+
+	// channel server
+	OConnectData   = 0x005C // warp to map
+	OServerMessage = 0x0041
 )
 
 // Recv packet headers
@@ -60,6 +64,9 @@ const (
 	ISetGender           = 0x0008
 	IRegisterPin         = 0x000A
 	IGuestLogin          = 0x0002
-	IUnknownPlsIgnore1   = 0x001A // this gets spammed while on login screen and I dunno why
+	IUnknownPlsIgnore1   = 0x001A // this gets spammed while on login screen, apparently it means client error
 	IUnknownPlsIgnore2   = 0x000F
+
+	// channel server
+	ILoadCharacter = 0x0014
 )
