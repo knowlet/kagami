@@ -124,9 +124,11 @@ func handleChannelConnect(con *common.InterserverClient, it maplelib.PacketItera
 	}
 
 	fmt.Println("Handling channel", chanid, "on port", port)
+	status.Lock()
 	status.SetChanId(chanid)
 	status.SetPort(port)
 	status.SetWorldConf(conf)
+	status.Unlock()
 	// TODO: set map unload time
 
 	// accept client connections in a new thread

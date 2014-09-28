@@ -18,7 +18,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	//"strings"
 	"time"
 )
 
@@ -47,6 +46,10 @@ func Handle(con *client.Connection, p maplelib.Packet) (handled bool, err error)
 		return true, nil
 
 	case packets.IUnknownPlsIgnore2:
+		return true, nil
+
+	// this shouldn't be received by the login server but sometimes it happens
+	case packets.IPlayerUpdateIgnore:
 		return true, nil
 
 	case packets.ILoginPassword:
@@ -341,6 +344,8 @@ func handleServerListRequest(con *client.Connection) (handled bool, err error) {
 		return
 	}
 
+	worlds.Lock()
+	defer worlds.Unlock()
 	err = worlds.Show(con)
 	handled = err == nil
 	return
@@ -361,6 +366,8 @@ func handleServerStatusRequest(con *client.Connection, it maplelib.PacketIterato
 		return
 	}
 
+	worlds.Lock()
+	defer worlds.Unlock()
 	world := worlds.Get(worldId)
 
 	if world == nil {
@@ -425,7 +432,11 @@ func handleViewAllChar(con *client.Connection) (handled bool, err error) {
 	charcount := uint32(0)
 	charmap := make(map[int8][]*common.CharData) // char list of each world mapped by world id
 
+	worlds.Lock()
+	defer worlds.Unlock()
+
 	// loop chars in rows and append to the map
+	// TODO: check if order counts
 	for _, row := range rows {
 		// get world id and make sure that it's online
 		worldId := int8(row.Int(colworldid))
@@ -517,6 +528,9 @@ func handleCharlistRequest(con *client.Connection, it maplelib.PacketIterator) (
 		return
 	}
 
+	worlds.Lock()
+	defer worlds.Unlock()
+
 	// check if world is valid
 	w := worlds.Get(con.WorldId())
 	if w == nil {
@@ -604,6 +618,9 @@ func handleCharSelect(con *client.Connection, it maplelib.PacketIterator) (handl
 			charId))
 		return
 	}
+
+	worlds.Lock()
+	defer worlds.Unlock()
 
 	// notify world server that we're transferring this player from the loginserver to the worldserver
 	w := worlds.Get(con.WorldId())
@@ -786,6 +803,9 @@ func handleCreateChar(con *client.Connection, it maplelib.PacketIterator) (handl
 		return
 	}
 
+	worlds.Lock()
+	defer worlds.Unlock()
+
 	// sync new character with the world server
 	w := worlds.Get(con.WorldId())
 	if w == nil {
@@ -793,7 +813,6 @@ func handleCreateChar(con *client.Connection, it maplelib.PacketIterator) (handl
 		return
 	}
 
-	// TODO: inter-server communication
 	//err = w.SendPacket(interserver.SyncCharacterCreated(charid))
 	handled = err == nil
 	return

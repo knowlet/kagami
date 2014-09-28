@@ -192,6 +192,7 @@ func handleLoadCharacter(con *player.Connection, it maplelib.PacketIterator) (ha
 
 	// TODO: init position, stance and foothold
 
+	status.Lock()
 	con.SendPacket(connectData(con))
 
 	conf := status.WorldConf()
@@ -201,6 +202,7 @@ func handleLoadCharacter(con *player.Connection, it maplelib.PacketIterator) (ha
 			return
 		}
 	}
+	status.Unlock()
 
 	// TODO: init pets
 	// TODO: send keymaps

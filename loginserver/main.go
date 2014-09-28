@@ -34,6 +34,9 @@ import (
 
 // loadDefaultWorlds loads and adds the default world list to the loginserver
 func loadDefaultWorlds() {
+	worlds.Lock()
+	defer worlds.Unlock()
+
 	// TODO: config files
 	configs := config.DefaultWorldConf()
 
@@ -74,6 +77,9 @@ func main() {
 			return worlds.NewConnection(con, consts.InterServerPassword)
 		},
 		func(con common.Connection) {
+			worlds.Lock()
+			defer worlds.Unlock()
+
 			scon, ok := con.(*worlds.Connection)
 			if !ok {
 				panic(errors.New("World handler failed type assertion on disconnect"))

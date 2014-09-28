@@ -73,6 +73,11 @@ func HandleChan(con *channels.Connection, p maplelib.Packet) (handled bool, err 
 
 		switch servertype {
 		case interserver.ChannelServer: // we're only accepting channel serv connections here
+			status.Lock()
+			channels.Lock()
+			defer channels.Unlock()
+			defer status.Unlock()
+
 			available := channels.GetFirstAvailableId()
 			con.SetChannelId(available)
 
@@ -83,8 +88,10 @@ func HandleChan(con *channels.Connection, p maplelib.Packet) (handled bool, err 
 			}
 
 			chanport := makeChannelPort(available)
+
 			// TODO: get external ip
 			ipbytes := common.RemoteAddrToBytes(con.Conn().RemoteAddr().String())
+
 			channels.Add(con, available, ipbytes, chanport)
 			con.SendPacket(channelConnect(available, chanport))
 			// TODO: send sync channel connect
@@ -141,6 +148,8 @@ func handleWorldConnect(con *common.InterserverClient, it maplelib.PacketIterato
 
 	handled = true
 	fmt.Println("Handling world", worldid)
+	status.Lock()
+	defer status.Unlock()
 	status.SetConf(conf)
 	status.SetPort(port)
 	status.SetLoginConn(con)
@@ -171,6 +180,10 @@ func handleWorldConnect(con *common.InterserverClient, it maplelib.PacketIterato
 			}
 
 			fmt.Println("Removing channel", deletechanid)
+			status.Lock()
+			channels.Lock()
+			defer status.Unlock()
+			defer channels.Unlock()
 			if status.LoginConn() != nil {
 				status.LoginConn().SendPacket(interserver.RemoveChannel(deletechanid))
 			}

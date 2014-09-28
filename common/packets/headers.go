@@ -66,6 +66,7 @@ const (
 	IGuestLogin          = 0x0002
 	IUnknownPlsIgnore1   = 0x001A // this gets spammed while on login screen, apparently it means client error
 	IUnknownPlsIgnore2   = 0x000F
+	IPlayerUpdateIgnore  = 0x00C0
 
 	// channel server
 	ILoadCharacter = 0x0014

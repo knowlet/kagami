@@ -48,6 +48,8 @@ func HandleInter(con *worlds.Connection, p maplelib.Packet) (handled bool, err e
 			return
 		}
 
+		worlds.Lock()
+		defer worlds.Unlock()
 		switch servertype {
 		case interserver.WorldServer:
 			err = worlds.AddWorldServer(con)
@@ -92,6 +94,8 @@ func handleRegisterChannel(con *worlds.Connection, it maplelib.PacketIterator) (
 		return
 	}
 
+	worlds.Lock()
+	defer worlds.Unlock()
 	worlds.Get(con.WorldId()).AddChannel(id, worlds.NewChannel(port))
 	fmt.Println("Registered channel", id, "to", common.BytesToIpString(ipbytes), ":", port)
 	handled = err == nil

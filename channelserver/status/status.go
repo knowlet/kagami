@@ -17,12 +17,26 @@
 // such as world config, port and connections that are shared globally within the package
 package status
 
+import "sync"
 import "github.com/Francesco149/kagami/common/config"
 
+var mut sync.Mutex
 var worldId int8 = -1
 var chanId int8 = -1
 var port int16 = 0
 var worldConf *config.WorldConf = nil
+
+// Lock locks the status mutex.
+// Must be called before performing any operation on
+// the channelserver status
+func Lock() {
+	mut.Lock()
+}
+
+// Unlock unlocks the status mutex.
+func Unlock() {
+	mut.Unlock()
+}
 
 func SetWorldId(wid int8)              { worldId = wid }
 func WorldId() int8                    { return worldId }

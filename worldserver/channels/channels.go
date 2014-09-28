@@ -16,12 +16,27 @@
 // Package channels contains data structures and utilities to keep track of the server's channels
 package channels
 
+import "sync"
+
 import (
 	"github.com/Francesco149/kagami/worldserver/status"
 	"github.com/Francesco149/maplelib"
 )
 
+var mut sync.Mutex
 var channels = make(map[int8]*Channel) // channels mapped by id
+
+// Lock locks the channels mutex.
+// Must be called before performing any operation on
+// the channels
+func Lock() {
+	mut.Lock()
+}
+
+// Unlock unlocks the channels mutex.
+func Unlock() {
+	mut.Unlock()
+}
 
 // channels.Add creates and adds a new channel to the list
 func Add(con *Connection, chanid int8, chanip []byte, port int16) {

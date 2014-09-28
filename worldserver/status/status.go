@@ -17,14 +17,29 @@
 // such as world config, port and connections that are shared globally within the package
 package status
 
+import "sync"
+
 import (
 	"github.com/Francesco149/kagami/common"
 	"github.com/Francesco149/kagami/common/config"
 )
 
+var mut sync.Mutex
 var worldconf *config.WorldConf = nil
 var worldport int16 = -1
 var loginconn *common.InterserverClient = nil // connection to the loginserver
+
+// Lock locks the status mutex.
+// Must be called before performing any operation on
+// the worldserver status
+func Lock() {
+	mut.Lock()
+}
+
+// Unlock unlocks the status mutex.
+func Unlock() {
+	mut.Unlock()
+}
 
 func Conf() *config.WorldConf                  { return worldconf }
 func SetConf(c *config.WorldConf)              { worldconf = c }

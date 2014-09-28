@@ -20,6 +20,7 @@ package worlds
 import (
 	"errors"
 	"fmt"
+	"sync"
 )
 
 import (
@@ -30,9 +31,20 @@ import (
 	"github.com/Francesco149/maplelib"
 )
 
-// TODO: make this thread safe?
-
+var mut sync.Mutex
 var worlds = make(map[int8]*World)
+
+// Lock locks the worlds mutex.
+// Must be called before performing any operation on
+// the world list or single worlds/channels.
+func Lock() {
+	mut.Lock()
+}
+
+// Unlock unlocks the worlds mutex.
+func Unlock() {
+	mut.Unlock()
+}
 
 // Add adds the given world to the world list
 func Add(w *World) {
@@ -58,7 +70,9 @@ func AddWorldServer(con *Connection) error {
 	var bindworld *World = nil
 	var bindworldid int8 = -1
 
-	for _, world := range worlds {
+	// NOTE: we cannot use foreach here otherwise the order could be random
+	for i := int8(0); i < int8(len(worlds)); i++ {
+		world := worlds[i]
 		if !world.Connected() { // we need to find a world that still isn't connected
 			bindworld = world
 			break
@@ -94,7 +108,9 @@ func AddChannelServer(con *Connection) error {
 	worldIp := make([]byte, 4)
 
 	// find a connected world that has room for channels
-	for _, world := range worlds {
+	// NOTE: we cannot use foreach here otherwise the order could be random
+	for i := int8(0); i < int8(len(worlds)); i++ {
+		world := worlds[i]
 		if world.ChannelCount() < world.Conf().MaxChannels() && world.Connected() {
 			targetworld = world
 			break
@@ -155,7 +171,10 @@ func showWorld(w *World) (p maplelib.Packet) {
 
 // Show sends the world and channel list to the given client
 func Show(con *client.Connection) (err error) {
-	for _, world := range worlds {
+	// NOTE: we cannot use foreach here otherwise the order could be random
+	for i := int8(0); i < int8(len(worlds)); i++ {
+		world := worlds[i]
+
 		if !world.Connected() {
 			continue
 		}
