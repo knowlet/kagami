@@ -63,7 +63,7 @@ func GetCharEquipsFromDB(characterId int32) (res []*CharEquipData, err error) {
 }
 
 // CharData is a struct that holds character data retrieved from the database
-// that will be used by handleViewAllChar
+// that will be used by handleViewAllChar and a couple other packet handlers.
 type CharData struct {
 	id            int32
 	name          string

@@ -40,6 +40,7 @@ const (
 	// channel server
 	OConnectData   = 0x005C // warp to map
 	OServerMessage = 0x0041
+	OChangeChannel = 0x0010
 )
 
 // Recv packet headers

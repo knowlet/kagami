@@ -356,3 +356,12 @@ func ServerMessage(msgtype, channel int8, message string,
 func ScrollingHeader(msg string) maplelib.Packet {
 	return ServerMessage(ServerMessageScrollingHeader, 0, msg, true, false)
 }
+
+// ChangeChannel returns a packet that tells the client the ip of the new channel
+func ChangeChannel(ip []byte, port int16) (p maplelib.Packet) {
+	p = NewEncryptedPacket(OChangeChannel)
+	p.Encode1(0x01)
+	p.Append(ip)
+	p.Encode2s(port)
+	return
+}

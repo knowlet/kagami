@@ -17,6 +17,7 @@ package interserver
 
 import (
 	"github.com/Francesco149/kagami/common/packets"
+	"github.com/Francesco149/kagami/common/player"
 	"github.com/Francesco149/maplelib"
 )
 
@@ -34,12 +35,12 @@ func Auth(passwd string, serverType byte) (p maplelib.Packet) {
 	return
 }
 
-// ConnectingToChannel notifies the world server that we're connecting to a channel
-func ConnectingToChannel(channel int8, charId int32, ip []byte) (p maplelib.Packet) {
-	p = packets.NewEncryptedPacket(IOConnectingToChannel)
+// MessageToChannel tells the worldserver that this packet must be relayed
+// to a certain channel server
+func MessageToChannel(channel int8, packet maplelib.Packet) (p maplelib.Packet) {
+	p = packets.NewEncryptedPacket(IOMessageToChannel)
 	p.Encode1s(channel)
-	p.Encode4s(charId)
-	p.Append(ip)
+	p.Append([]byte(packet))
 	return
 }
 
@@ -73,5 +74,76 @@ func RegisterChannel(channelId int8, ipbytes []byte, channelPort int16) (p maple
 	p.Encode1s(channelId)
 	p.Append(ipbytes)
 	p.Encode2s(channelPort)
+	return
+}
+
+// SyncWorldCharacterCreated returns a packet that notifies the world server that a character has been created
+func SyncWorldCharacterCreated(charid int32) (p maplelib.Packet) {
+	p = packets.NewEncryptedPacket(IOSyncWorldCharacterCreated)
+	p.Encode4s(charid)
+	return
+}
+
+// SyncWorldCharacterDeleted returns a packet that notifies the world server that a character has been deleted
+func SyncWorldCharacterDeleted(charid int32) (p maplelib.Packet) {
+	p = packets.NewEncryptedPacket(IOSyncWorldCharacterDeleted)
+	p.Encode4s(charid)
+	return
+}
+
+// SyncChannelCharacterCreated returns a packet that notifies the channel server that a character has been created
+func SyncChannelCharacterCreated(char *player.Data) (p maplelib.Packet, err error) {
+	p = packets.NewEncryptedPacket(IOSyncChannelCharacterCreated)
+	err = char.Encode(&p)
+	return
+}
+
+// SyncChannelCharacterDeleted returns a packet that notifies the channel server that a character has been deleted
+func SyncChannelCharacterDeleted(charid int32) (p maplelib.Packet) {
+	p = packets.NewEncryptedPacket(IOSyncChannelCharacterDeleted)
+	p.Encode4s(charid)
+	return
+}
+
+// SyncChannelNewPlayer notifies the channel server that we're connecting to that channel
+func SyncChannelNewPlayer(charId int32, ip []byte) (p maplelib.Packet) {
+	p = packets.NewEncryptedPacket(IOSyncChannelNewPlayer)
+	p.Encode4s(charId)
+	p.EncodeBuffer(ip)
+	return
+}
+
+// SyncWorldPerformChangeChannel notifies the world server that the player can be
+// transferred to the desired channel
+func SyncWorldPerformChangeChannel(charId int32) (p maplelib.Packet) {
+	p = packets.NewEncryptedPacket(IOSyncWorldPerformChangeChannel)
+	p.Encode4s(charId)
+	return
+}
+
+// SyncWorldPerformChangeChannel notifies the channel server that the player has been
+// transferred to another channel
+func SyncChannelPerformChangeChannel(id int32, newchanid int8, ip []byte, port int16) (p maplelib.Packet) {
+	p = packets.NewEncryptedPacket(IOSyncChannelPerformChangeChannel)
+	p.Encode4s(id)
+	p.Encode1s(newchanid)
+	p.EncodeBuffer(ip)
+	p.Encode2s(port)
+	return
+}
+
+// SyncWorldLoadCharacter notifies the world server that a character joined the channel server and
+// sends it the player's data
+func SyncWorldLoadCharacter(data *player.Data) (p maplelib.Packet, err error) {
+	p = packets.NewEncryptedPacket(IOSyncWorldLoadCharacter)
+	err = data.Encode(&p)
+	return
+}
+
+// SyncChannelUpdatePlayer sends a character's data to the channel server,
+// telling it to update its local cache of the data
+func SyncChannelUpdatePlayer(data *player.Data) (p maplelib.Packet, err error) {
+	p = packets.NewEncryptedPacket(IOSyncChannelUpdatePlayer)
+	err = data.Encode(&p)
 	return
 }

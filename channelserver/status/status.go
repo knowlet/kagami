@@ -18,13 +18,18 @@
 package status
 
 import "sync"
-import "github.com/Francesco149/kagami/common/config"
+import (
+	"github.com/Francesco149/kagami/common"
+	"github.com/Francesco149/kagami/common/config"
+)
 
 var mut sync.Mutex
 var worldId int8 = -1
 var chanId int8 = -1
 var port int16 = 0
 var worldConf *config.WorldConf = nil
+var worldConn *common.InterserverClient = nil
+var loginConn *common.InterserverClient = nil
 
 // Lock locks the status mutex.
 // Must be called before performing any operation on
@@ -38,11 +43,15 @@ func Unlock() {
 	mut.Unlock()
 }
 
-func SetWorldId(wid int8)              { worldId = wid }
-func WorldId() int8                    { return worldId }
-func SetChanId(cid int8)               { chanId = cid }
-func ChanId() int8                     { return chanId }
-func SetPort(p int16)                  { port = p }
-func Port() int16                      { return port }
-func WorldConf() *config.WorldConf     { return worldConf }
-func SetWorldConf(c *config.WorldConf) { worldConf = c }
+func SetWorldId(wid int8)                      { worldId = wid }
+func WorldId() int8                            { return worldId }
+func SetChanId(cid int8)                       { chanId = cid }
+func ChanId() int8                             { return chanId }
+func SetPort(p int16)                          { port = p }
+func Port() int16                              { return port }
+func WorldConf() *config.WorldConf             { return worldConf }
+func SetWorldConf(c *config.WorldConf)         { worldConf = c }
+func WorldConn() *common.InterserverClient     { return worldConn }
+func SetWorldConn(c *common.InterserverClient) { worldConn = c }
+func LoginConn() *common.InterserverClient     { return loginConn }
+func SetLoginConn(c *common.InterserverClient) { loginConn = c }

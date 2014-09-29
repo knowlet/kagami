@@ -21,17 +21,20 @@ import (
 )
 
 import (
-	"github.com/Francesco149/kagami/channelserver/player"
+	"github.com/Francesco149/kagami/channelserver/client"
+	"github.com/Francesco149/kagami/channelserver/players"
 	"github.com/Francesco149/kagami/channelserver/status"
 	"github.com/Francesco149/kagami/common"
+	"github.com/Francesco149/kagami/common/interserver"
 	"github.com/Francesco149/kagami/common/packets"
+	"github.com/Francesco149/kagami/common/player"
 	"github.com/Francesco149/maplelib"
 	"math/rand"
 	"time"
 )
 
 // Handle handles channelserver packets
-func Handle(con *player.Connection, p maplelib.Packet) (handled bool, err error) {
+func Handle(con *client.Connection, p maplelib.Packet) (handled bool, err error) {
 	it := p.Begin()
 	header, err := it.Decode2()
 	if err != nil {
@@ -54,7 +57,7 @@ func Handle(con *player.Connection, p maplelib.Packet) (handled bool, err error)
 
 // connectData returns a packet that sends the initial character data when
 // a player connects to the channelserver
-func connectData(con *player.Connection) (p maplelib.Packet) {
+func connectData(con *client.Connection) (p maplelib.Packet) {
 	p = packets.NewEncryptedPacket(packets.OConnectData)
 	// TODO: add all missing data
 	p.Encode4s(int32(status.ChanId()))
@@ -112,7 +115,7 @@ func connectData(con *player.Connection) (p maplelib.Packet) {
 
 // handleLoadCharacter handles the packet for loading a player's character when the player first
 // connects to the channelserver
-func handleLoadCharacter(con *player.Connection, it maplelib.PacketIterator) (handled bool, err error) {
+func handleLoadCharacter(con *client.Connection, it maplelib.PacketIterator) (handled bool, err error) {
 	handled = false
 
 	// TODO: check for transfer packet
@@ -223,11 +226,32 @@ func handleLoadCharacter(con *player.Connection, it maplelib.PacketIterator) (ha
 	con.SetConnected(true)
 	fmt.Println(con.String())
 
-	// TODO: check for existing leftover data of the player and update / create it
+	status.Lock()
+	players.Lock()
+	defer players.Unlock()
+	defer status.Unlock()
 
-	// TODO: send playerdata sync packet
-	// yes, there's a lot of stuff to do
+	data := players.GetData(con.UserId())
+	if data == nil {
+		data = &player.Data{}
+		data.SetAdmin(con.Admin())
+		//data.SetLevel(con.Stats().Level())
+		//data.SetJob(con.Stats().Job())
+		data.SetGmLevel(con.GmLevel())
+		data.SetName(con.Name())
+		//data.SetMutualBuddies(con.Buddies().Ids())
+	}
 
+	data.SetChannel(status.ChanId())
+	data.SetMapId(con.MapId())
+	data.SetCharId(con.CharId())
+	data.SetIp(common.RemoteAddrToBytes(con.Conn().RemoteAddr().String()))
+
+	syncpacket, err := interserver.SyncWorldLoadCharacter(data)
+	if err != nil {
+		return
+	}
+	err = status.WorldConn().SendPacket(syncpacket)
 	handled = err == nil
 	return
 }

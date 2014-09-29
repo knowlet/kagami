@@ -54,18 +54,35 @@ func Get(chanid int8) *Channel {
 	return channels[chanid]
 }
 
+func clonePacket(p maplelib.Packet) maplelib.Packet {
+	bytes := []byte(p)
+	clone := make([]byte, len(bytes))
+	copy(clone, bytes)
+	return maplelib.Packet(clone)
+}
+
 // channels.SendToChannelList sends a packet to a list of channel id's
-func SendToChannelList(channelids []int8, p maplelib.Packet) {
+func SendToChannelList(channelids []int8, p maplelib.Packet) (err error) {
 	for _, id := range channelids {
-		Get(id).Conn().SendPacket(p)
+		err = Get(id).Conn().SendPacket(clonePacket(p))
+		if err != nil {
+			return
+		}
 	}
+
+	return
 }
 
 // channels.SendToAllChannels sends a packet to all of the channels
-func SendToAllChannels(p maplelib.Packet) {
+func SendToAllChannels(p maplelib.Packet) (err error) {
 	for _, ch := range channels {
-		ch.Conn().SendPacket(p)
+		err = ch.Conn().SendPacket(clonePacket(p))
+		if err != nil {
+			return
+		}
 	}
+
+	return
 }
 
 // channels.GetFirstAvailableId returns the first available channel id

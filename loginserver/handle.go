@@ -622,11 +622,13 @@ func handleCharSelect(con *client.Connection, it maplelib.PacketIterator) (handl
 	worlds.Lock()
 	defer worlds.Unlock()
 
-	// notify world server that we're transferring this player from the loginserver to the worldserver
+	// notify channel server that we're transferring this player from the loginserver to a channel server
 	w := worlds.Get(con.WorldId())
-	// TODO: inter-server communication
-	ip := common.RemoteAddrToIp(con.Conn().RemoteAddr().String())
-	w.WorldCon().SendPacket(interserver.ConnectingToChannel(con.Channel(), charId, []byte(ip)))
+	ip := common.RemoteAddrToBytes(con.Conn().RemoteAddr().String())
+
+	// the packet is sent to the world server which relays it to the channelserver
+	packet := interserver.SyncChannelNewPlayer(charId, ip)
+	w.WorldCon().SendPacket(interserver.MessageToChannel(con.Channel(), packet))
 
 	// TODO: match user's subnet and connect to 127.0.0.1 if they are on the same subnet
 
@@ -813,7 +815,7 @@ func handleCreateChar(con *client.Connection, it maplelib.PacketIterator) (handl
 		return
 	}
 
-	//err = w.SendPacket(interserver.SyncCharacterCreated(charid))
+	err = w.WorldCon().SendPacket(interserver.SyncWorldCharacterCreated(charid))
 	handled = err == nil
 	return
 }
@@ -882,6 +884,21 @@ func handleDeleteChar(con *client.Connection, it maplelib.PacketIterator) (handl
 
 	// char delete response
 	err = con.SendPacket(packets.DeleteCharResponse(charid, status))
+	if err != nil {
+		return
+	}
+
+	worlds.Lock()
+	defer worlds.Unlock()
+
+	// sync deleted character with the world server
+	w := worlds.Get(con.WorldId())
+	if w == nil {
+		err = errors.New(fmt.Sprintf("The user is somehow connected to an offline world %d", con.WorldId()))
+		return
+	}
+
+	err = w.WorldCon().SendPacket(interserver.SyncWorldCharacterDeleted(charid))
 	handled = err == nil
 	return
 }

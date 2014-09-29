@@ -15,7 +15,7 @@
 
 // Package client contains various data structures and utilities related to individual
 // maplestory clients that are currently connected to the channel server
-package player
+package client
 
 import (
 	"errors"
@@ -30,7 +30,7 @@ import (
 
 // TODO: generic interface for movable entities
 
-// A player.Connection is a MapleStory in-game client connected to the channel server.
+// A client.Connection is a MapleStory in-game client connected to the channel server.
 // It's a wrapper around EncryptedConnection specialized for in-game MapleStory clients.
 // It caches various data from the database such as gm level, look and so on.
 type Connection struct {
@@ -171,4 +171,23 @@ func (c *Connection) EncodeQuestInfo(p *maplelib.Packet) {
 	// TODO
 	p.Encode2(0) // 0 started quests
 	p.Encode2(0) // 0 completed
+}
+
+// SaveStats saves all of the player's stats to the database
+func (c *Connection) SaveStats() {
+	// TODO
+}
+
+// Saves saves all of the player's information to the database
+func (c *Connection) Save() {
+	fmt.Println("Saving", c.Name(), "'s data")
+	c.SaveStats()
+	// TODO: save inventory
+	// TODO: save storage
+	// TODO: save monster book
+	// TODO: save mounts
+	// TODO: save pets
+	// TODO: save quests
+	// TODO: save skills
+	// TODO: save variables
 }

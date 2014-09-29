@@ -24,6 +24,7 @@ import (
 )
 
 import (
+	"github.com/Francesco149/kagami/channelserver/status"
 	"github.com/Francesco149/kagami/common"
 	"github.com/Francesco149/kagami/common/consts"
 	"github.com/Francesco149/kagami/common/interserver"
@@ -47,6 +48,10 @@ func main() {
 			return HandleInter(scon, p)
 		},
 		func(con net.Conn) common.Connection {
-			return common.NewInterserverClient(con, consts.InterServerPassword, interserver.ChannelServer)
+			c := common.NewInterserverClient(con, consts.InterServerPassword, interserver.ChannelServer)
+			status.Lock()
+			defer status.Unlock()
+			status.SetLoginConn(c)
+			return c
 		})
 }

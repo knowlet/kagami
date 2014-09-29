@@ -19,7 +19,7 @@ package interserver
 // Inter-server headers
 const (
 	IOAuth                = 0x1001
-	IOConnectingToChannel = 0x1002
+	IOMessageToChannel    = 0x1002
 	IOWorldConnect        = 0x1003
 	IOLoginChannelConnect = 0x1004
 	IORemoveChannel       = 0x1005
@@ -29,5 +29,13 @@ const (
 
 // Inter-server sync headers
 const (
-	IOSyncCharacterCreated = 0x8801
+	IOSyncWorldCharacterCreated       = 0x8801
+	IOSyncWorldCharacterDeleted       = 0x8802
+	IOSyncChannelCharacterCreated     = 0x8803
+	IOSyncChannelCharacterDeleted     = 0x8804
+	IOSyncChannelNewPlayer            = 0x8805
+	IOSyncWorldPerformChangeChannel   = 0x8806
+	IOSyncChannelPerformChangeChannel = 0x8807
+	IOSyncWorldLoadCharacter          = 0x8808
+	IOSyncChannelUpdatePlayer         = 0x8809
 )
