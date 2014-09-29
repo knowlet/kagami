@@ -52,6 +52,7 @@ type Connection struct {
 	lastmap                     int32  // last map id
 	gmLevel                     int32  // gm level
 	uptime                      int64  // total online time in seconds
+	buddylistSize               byte
 }
 
 // NewConnection initializes and returns an encrypted connection to a MapleStory client
@@ -133,6 +134,8 @@ func (c *Connection) GmLevel() int32                      { return c.gmLevel }
 func (c *Connection) SetGmLevel(gmLevel int32)            { c.gmLevel = gmLevel }
 func (c *Connection) Uptime() int64                       { return c.uptime }
 func (c *Connection) SetUptime(uptime int64)              { c.uptime = uptime }
+func (c *Connection) BuddylistSize() byte                 { return c.buddylistSize }
+func (c *Connection) SetBuddylistSize(buddylistSize byte) { c.buddylistSize = buddylistSize }
 
 // SetDBOnline updates the player's online status in the database
 func (c *Connection) SetDBOnline(online bool) (err error) {

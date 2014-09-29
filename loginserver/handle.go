@@ -24,7 +24,6 @@ import (
 import (
 	"github.com/Francesco149/kagami/common"
 	"github.com/Francesco149/kagami/common/consts"
-	"github.com/Francesco149/kagami/common/interserver"
 	"github.com/Francesco149/kagami/common/packets"
 	"github.com/Francesco149/kagami/loginserver/client"
 	"github.com/Francesco149/kagami/loginserver/items"
@@ -622,13 +621,7 @@ func handleCharSelect(con *client.Connection, it maplelib.PacketIterator) (handl
 	worlds.Lock()
 	defer worlds.Unlock()
 
-	// notify channel server that we're transferring this player from the loginserver to a channel server
 	w := worlds.Get(con.WorldId())
-	ip := common.RemoteAddrToBytes(con.Conn().RemoteAddr().String())
-
-	// the packet is sent to the world server which relays it to the channelserver
-	packet := interserver.SyncChannelNewPlayer(charId, ip)
-	w.WorldCon().SendPacket(interserver.MessageToChannel(con.Channel(), packet))
 
 	// TODO: match user's subnet and connect to 127.0.0.1 if they are on the same subnet
 
@@ -639,6 +632,7 @@ func handleCharSelect(con *client.Connection, it maplelib.PacketIterator) (handl
 	if ch != nil {
 		port = ch.Port()
 		// TODO: resolve this to the external ip address to actually make it work online
+		// TODO: this should be the chanserver's address
 		// FIXME
 		chanIp = common.RemoteAddrToBytes(w.WorldCon().Conn().RemoteAddr().String())
 		if len(chanIp) != 4 {
@@ -815,7 +809,6 @@ func handleCreateChar(con *client.Connection, it maplelib.PacketIterator) (handl
 		return
 	}
 
-	err = w.WorldCon().SendPacket(interserver.SyncWorldCharacterCreated(charid))
 	handled = err == nil
 	return
 }
@@ -898,7 +891,6 @@ func handleDeleteChar(con *client.Connection, it maplelib.PacketIterator) (handl
 		return
 	}
 
-	err = w.WorldCon().SendPacket(interserver.SyncWorldCharacterDeleted(charid))
 	handled = err == nil
 	return
 }

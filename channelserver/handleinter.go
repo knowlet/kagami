@@ -23,14 +23,11 @@ import (
 
 import (
 	"github.com/Francesco149/kagami/channelserver/client"
-	"github.com/Francesco149/kagami/channelserver/players"
 	"github.com/Francesco149/kagami/channelserver/status"
 	"github.com/Francesco149/kagami/common"
 	"github.com/Francesco149/kagami/common/config"
 	"github.com/Francesco149/kagami/common/consts"
 	"github.com/Francesco149/kagami/common/interserver"
-	"github.com/Francesco149/kagami/common/packets"
-	"github.com/Francesco149/kagami/common/player"
 	"github.com/Francesco149/maplelib"
 )
 
@@ -49,21 +46,6 @@ func HandleInter(con *common.InterserverClient, p maplelib.Packet) (handled bool
 
 	case interserver.IOChannelConnect:
 		return handleChannelConnect(con, it)
-
-	case interserver.IOSyncChannelNewPlayer:
-		return syncChannelNewPlayer(con, it)
-
-	case interserver.IOSyncChannelCharacterCreated:
-		return syncCharacterCreated(con, it)
-
-	case interserver.IOSyncChannelCharacterDeleted:
-		return syncCharacterDeleted(con, it)
-
-	case interserver.IOSyncChannelPerformChangeChannel:
-		return syncPerformChangeChannel(con, it)
-
-	case interserver.IOSyncChannelUpdatePlayer:
-		return syncUpdatePlayer(con, it)
 	}
 
 	return false, nil
@@ -181,123 +163,6 @@ func handleChannelConnect(con *common.InterserverClient, it maplelib.PacketItera
 
 	fmt.Println("Channel server is running!")
 
-	handled = err == nil
-	return
-}
-
-// syncChannelNewPlayer updates the channel server with the new player that has just joined
-func syncChannelNewPlayer(con *common.InterserverClient, it maplelib.PacketIterator) (handled bool, err error) {
-	charid, err := it.Decode4s()
-	ip, err := it.DecodeBuffer()
-
-	players.Lock()
-	defer players.Unlock()
-
-	err = players.RegisterConnection(charid, ip)
-	if err != nil {
-		return
-	}
-	status.Lock()
-	defer status.Unlock()
-	// notifies the world server that we've successfully changed channel if we were ccing
-	err = status.WorldConn().SendPacket(interserver.SyncWorldPerformChangeChannel(charid))
-	handled = err == nil
-	return
-}
-
-// syncCharacterCreated updates the channel server with the newly created character
-func syncCharacterCreated(con *common.InterserverClient, it maplelib.PacketIterator) (handled bool, err error) {
-	data, err := player.DecodeData(&it)
-	if err != nil {
-		return
-	}
-
-	players.Lock()
-	defer players.Unlock()
-
-	// cache character in the player pool
-	players.AddData(data)
-
-	fmt.Println("Sync: Character", data.CharId(), "was created")
-	handled = err == nil
-	return
-}
-
-// syncCharacterDeleted updates the channel server with the deleted character
-func syncCharacterDeleted(con *common.InterserverClient, it maplelib.PacketIterator) (handled bool, err error) {
-	id, err := it.Decode4s()
-	if err != nil {
-		return
-	}
-
-	fmt.Println("Sync: Character", id, "was deleted")
-	// TODO
-	handled = err == nil
-	return
-}
-
-func isZero(b []byte) bool {
-	for _, val := range b {
-		if val != 0 {
-			return false
-		}
-	}
-
-	return true
-}
-
-// syncPerformChangeChannel removes a ccing player from the current channel
-func syncPerformChangeChannel(con *common.InterserverClient, it maplelib.PacketIterator) (handled bool, err error) {
-	id, err := it.Decode4s()
-	newchan, err := it.Decode1s()
-	ip, err := it.DecodeBuffer()
-	port, err := it.Decode2s()
-	if err != nil {
-		return
-	}
-
-	player := players.Get(id)
-	if player == nil {
-		handled = true
-		return
-	}
-
-	if isZero(ip) {
-		//player.SendPacket(packets.SendBlockedMessage(packets.CannotEnterChannel))
-		handled = true
-		return
-	}
-
-	fmt.Println("Dropping", player.Name(), "who is transferring to channel", newchan)
-	player.SetDBOnline(false)
-	err = player.SendPacket(packets.ChangeChannel(ip, port))
-	if err != nil {
-		return
-	}
-	player.Save()
-	handled = err == nil
-	return
-}
-
-// syncUpdatePlayer updates the channel server with the received char data
-func syncUpdatePlayer(con *common.InterserverClient, it maplelib.PacketIterator) (handled bool, err error) {
-	data, err := player.DecodeData(&it)
-	if err != nil {
-		return
-	}
-
-	players.Lock()
-	defer players.Unlock()
-
-	fmt.Println("Updating", data.Name())
-	player := players.GetData(data.CharId())
-	if player != nil {
-		*player = *data
-	} else {
-		players.AddData(data)
-		player = players.GetData(data.CharId())
-	}
-	player.SetInitialized(true)
 	handled = err == nil
 	return
 }

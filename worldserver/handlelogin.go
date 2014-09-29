@@ -27,7 +27,6 @@ import (
 	"github.com/Francesco149/kagami/common/consts"
 	"github.com/Francesco149/kagami/common/interserver"
 	"github.com/Francesco149/kagami/worldserver/channels"
-	"github.com/Francesco149/kagami/worldserver/players"
 	"github.com/Francesco149/kagami/worldserver/status"
 	"github.com/Francesco149/maplelib"
 )
@@ -43,15 +42,6 @@ func HandleLogin(con *common.InterserverClient, p maplelib.Packet) (handled bool
 	switch header {
 	case interserver.IOWorldConnect:
 		return handleWorldConnect(con, it)
-
-	case interserver.IOMessageToChannel:
-		return handleMessageToChannel(con, it)
-
-	case interserver.IOSyncWorldCharacterCreated:
-		return syncCharacterCreated(con, it)
-
-	case interserver.IOSyncWorldCharacterDeleted:
-		return syncCharacterDeleted(con, it)
 	}
 
 	return false, nil
@@ -123,77 +113,6 @@ func handleWorldConnect(con *common.InterserverClient, it maplelib.PacketIterato
 			channels.Remove(deletechanid)
 		})
 
-	players.LoadWorld(worldid)
 	fmt.Println("World server is running!")
-	return
-}
-
-// handleMessageToChannel forwards the packet to the target channel server
-func handleMessageToChannel(con *common.InterserverClient, it maplelib.PacketIterator) (handled bool, err error) {
-	chanid, err := it.Decode1s()
-	if err != nil {
-		return
-	}
-
-	channels.Lock()
-	defer channels.Unlock()
-	ch := channels.Get(chanid)
-	if ch == nil {
-		err = errors.New("channel does not exist")
-		return
-	}
-	err = ch.Conn().SendPacket(maplelib.Packet(it))
-	handled = err == nil
-	return
-}
-
-// syncCharacterCreated updates the world server with the newly created character
-func syncCharacterCreated(con *common.InterserverClient, it maplelib.PacketIterator) (handled bool, err error) {
-	id, err := it.Decode4s()
-	if err != nil {
-		return
-	}
-
-	players.Lock()
-	channels.Lock()
-	defer players.Unlock()
-	defer channels.Unlock()
-
-	// cache character in the player pool
-	err = players.Load(id)
-	if err != nil {
-		return
-	}
-
-	fmt.Println("Sync: Character", id, "was created")
-
-	// dispatch to all channels
-	p, err := interserver.SyncChannelCharacterCreated(players.Get(id))
-	if err != nil {
-		return
-	}
-
-	err = channels.SendToAllChannels(p)
-	handled = err == nil
-	return
-}
-
-// syncCharacterDeleted updates the world server with the deleted character
-func syncCharacterDeleted(con *common.InterserverClient, it maplelib.PacketIterator) (handled bool, err error) {
-	id, err := it.Decode4s()
-	if err != nil {
-		return
-	}
-
-	players.Lock()
-	channels.Lock()
-	defer players.Unlock()
-	defer channels.Unlock()
-
-	fmt.Println("Sync: Character", id, "was deleted")
-
-	// dispatch to all channels
-	err = channels.SendToAllChannels(interserver.SyncChannelCharacterDeleted(id))
-	handled = err == nil
 	return
 }

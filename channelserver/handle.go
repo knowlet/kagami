@@ -22,12 +22,9 @@ import (
 
 import (
 	"github.com/Francesco149/kagami/channelserver/client"
-	"github.com/Francesco149/kagami/channelserver/players"
 	"github.com/Francesco149/kagami/channelserver/status"
 	"github.com/Francesco149/kagami/common"
-	"github.com/Francesco149/kagami/common/interserver"
 	"github.com/Francesco149/kagami/common/packets"
-	"github.com/Francesco149/kagami/common/player"
 	"github.com/Francesco149/maplelib"
 	"math/rand"
 	"time"
@@ -227,31 +224,10 @@ func handleLoadCharacter(con *client.Connection, it maplelib.PacketIterator) (ha
 	fmt.Println(con.String())
 
 	status.Lock()
-	players.Lock()
-	defer players.Unlock()
 	defer status.Unlock()
 
-	data := players.GetData(con.UserId())
-	if data == nil {
-		data = &player.Data{}
-		data.SetAdmin(con.Admin())
-		//data.SetLevel(con.Stats().Level())
-		//data.SetJob(con.Stats().Job())
-		data.SetGmLevel(con.GmLevel())
-		data.SetName(con.Name())
-		//data.SetMutualBuddies(con.Buddies().Ids())
-	}
+	// TODO: add to player pool
 
-	data.SetChannel(status.ChanId())
-	data.SetMapId(con.MapId())
-	data.SetCharId(con.CharId())
-	data.SetIp(common.RemoteAddrToBytes(con.Conn().RemoteAddr().String()))
-
-	syncpacket, err := interserver.SyncWorldLoadCharacter(data)
-	if err != nil {
-		return
-	}
-	err = status.WorldConn().SendPacket(syncpacket)
 	handled = err == nil
 	return
 }

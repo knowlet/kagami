@@ -24,9 +24,7 @@ import (
 	"github.com/Francesco149/kagami/common"
 	"github.com/Francesco149/kagami/common/interserver"
 	"github.com/Francesco149/kagami/common/packets"
-	"github.com/Francesco149/kagami/common/player"
 	"github.com/Francesco149/kagami/worldserver/channels"
-	"github.com/Francesco149/kagami/worldserver/players"
 	"github.com/Francesco149/kagami/worldserver/status"
 	"github.com/Francesco149/maplelib"
 )
@@ -99,73 +97,8 @@ func HandleChan(con *channels.Connection, p maplelib.Packet) (handled bool, err 
 	}
 
 	switch header {
-	case interserver.IOSyncWorldPerformChangeChannel:
-		return syncPerformChangeChannel(con, it)
-
-	case interserver.IOSyncWorldLoadCharacter:
-		return syncLoadCharacter(con, it)
+	// TODO
 	}
 
 	return false, nil
-}
-
-// syncPerformChangeChannel updates a ccing player's channel
-func syncPerformChangeChannel(con *channels.Connection, it maplelib.PacketIterator) (handled bool, err error) {
-	id, err := it.Decode4s()
-	if err != nil {
-		return
-	}
-
-	players.Lock()
-	defer players.Unlock()
-
-	player := players.Get(id)
-	curchan := channels.Get(player.Channel())
-	if curchan == nil {
-		return
-	}
-
-	newchanid := players.GetPendingCC(id)
-	newchan := channels.Get(newchanid)
-	ip := make([]byte, 4)
-	port := int16(-1)
-
-	if newchan != nil {
-		cconn := newchan.Conn().Conn()
-		if cconn != nil {
-			ip = common.RemoteAddrToBytes(cconn.RemoteAddr().String())
-			port = newchan.Port()
-		}
-	}
-
-	curchan.Conn().SendPacket(interserver.SyncChannelPerformChangeChannel(id, newchanid, ip, port))
-	players.RemovePendingCC(id)
-	handled = err == nil
-	return
-}
-
-// syncLoadCharacter adds a newly connected player's data to the player pool
-func syncLoadCharacter(con *channels.Connection, it maplelib.PacketIterator) (handled bool, err error) {
-	data, err := player.DecodeData(&it)
-	if err != nil {
-		return
-	}
-
-	channels.Lock()
-	players.Lock()
-	defer players.Unlock()
-	defer channels.Unlock()
-
-	player := players.Get(data.CharId())
-	*player = *data
-	player.SetInitialized(true)
-	player.SetTransferring(false)
-
-	syncpacket, err := interserver.SyncChannelUpdatePlayer(player)
-	if err != nil {
-		return
-	}
-	err = channels.SendToAllChannels(syncpacket)
-	handled = err == nil
-	return
 }
