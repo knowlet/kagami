@@ -87,7 +87,6 @@ func HandleChan(con *channels.Connection, p maplelib.Packet) (handled bool, err 
 
 			channels.Add(con, available, ipbytes, chanport)
 			con.SendPacket(channelConnect(available, chanport))
-			// TODO: send sync channel connect
 			status.LoginConn().SendPacket(interserver.RegisterChannel(available, ipbytes, chanport))
 		default:
 			err = errors.New("Unknown server type")
@@ -97,8 +96,64 @@ func HandleChan(con *channels.Connection, p maplelib.Packet) (handled bool, err 
 	}
 
 	switch header {
-	// TODO
+	case interserver.IOSyncPlayerJoinedChannel:
+		return syncPlayerJoinedChannel(con, it)
+
+	case interserver.IOSyncPlayerLeftChannel:
+		return syncPlayerLeftChannel(con, it)
 	}
 
 	return false, nil
+}
+
+// syncPlayerJoinedChannel handles a request from the channelserver that
+// tells the worldserver that a player has joined the channel
+func syncPlayerJoinedChannel(con *channels.Connection, it maplelib.PacketIterator) (handled bool, err error) {
+	chanid, err := it.Decode1s()
+	if err != nil {
+		return
+	}
+
+	channels.Lock()
+	defer channels.Unlock()
+	ch := channels.Get(chanid)
+	if ch == nil {
+		err = errors.New("Channel requested to update a non-existing/offline channel")
+		return
+	}
+
+	ch.IncPopulation()
+	fmt.Println("Increased channel", chanid, "'s population to", ch.Population())
+	status.Lock()
+	defer status.Unlock()
+	status.LoginConn().SendPacket(interserver.SyncChannelPopulation(status.WorldId(), chanid, ch.Population()))
+
+	handled = err == nil
+	return
+}
+
+// syncPlayerLeftChannel handles a request from the channelserver that
+// tells the worldserver that a player has left the channel
+func syncPlayerLeftChannel(con *channels.Connection, it maplelib.PacketIterator) (handled bool, err error) {
+	chanid, err := it.Decode1s()
+	if err != nil {
+		return
+	}
+
+	channels.Lock()
+	defer channels.Unlock()
+	ch := channels.Get(chanid)
+	if ch == nil {
+		err = errors.New("Channel requested to update a non-existing/offline channel")
+		return
+	}
+
+	ch.DecPopulation()
+	fmt.Println("Decreased channel", chanid, "'s population to", ch.Population())
+	status.Lock()
+	defer status.Unlock()
+	status.LoginConn().SendPacket(interserver.SyncChannelPopulation(status.WorldId(), chanid, ch.Population()))
+
+	handled = err == nil
+	return
 }

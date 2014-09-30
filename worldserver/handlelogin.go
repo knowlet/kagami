@@ -74,6 +74,7 @@ func handleWorldConnect(con *common.InterserverClient, it maplelib.PacketIterato
 	status.SetConf(conf)
 	status.SetPort(port)
 	status.SetLoginConn(con)
+	status.SetWorldId(worldid)
 
 	// TODO: check if I need to store the loginserver's external ip address
 

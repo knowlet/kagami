@@ -24,6 +24,7 @@ import (
 	"github.com/Francesco149/kagami/channelserver/client"
 	"github.com/Francesco149/kagami/channelserver/status"
 	"github.com/Francesco149/kagami/common"
+	"github.com/Francesco149/kagami/common/interserver"
 	"github.com/Francesco149/kagami/common/packets"
 	"github.com/Francesco149/maplelib"
 	"math/rand"
@@ -225,6 +226,7 @@ func handleLoadCharacter(con *client.Connection, it maplelib.PacketIterator) (ha
 
 	status.Lock()
 	defer status.Unlock()
+	status.WorldConn().SendPacket(interserver.SyncPlayerJoinedChannel(status.ChanId()))
 
 	// TODO: add to player pool
 

@@ -18,10 +18,13 @@ package interserver
 
 // Inter-server headers
 const (
-	IOAuth                = 0x1001
-	IOWorldConnect        = 0x1003
-	IOLoginChannelConnect = 0x1004
-	IORemoveChannel       = 0x1005
-	IOChannelConnect      = 0x1006
-	IORegisterChannel     = 0x1007
+	IOAuth                    = 0x1001
+	IOWorldConnect            = 0x1003
+	IOLoginChannelConnect     = 0x1004
+	IORemoveChannel           = 0x1005
+	IOChannelConnect          = 0x1006
+	IORegisterChannel         = 0x1007
+	IOSyncPlayerJoinedChannel = 0x1008
+	IOSyncPlayerLeftChannel   = 0x1009
+	IOSyncChannelPopulation   = 0x1010
 )

@@ -383,7 +383,7 @@ func handleServerStatusRequest(con *client.Connection, it maplelib.PacketIterato
 	case world.PlayerLoad() == world.Conf().MaxPlayerLoad():
 		servstatus = packets.ServerFull
 
-	case world.PlayerLoad() >= (world.Conf().MaxPlayerLoad()/100)*90:
+	case world.PlayerLoad() >= int32(float64(world.Conf().MaxPlayerLoad())*0.9):
 		servstatus = packets.ServerHigh
 	}
 
@@ -623,22 +623,33 @@ func handleCharSelect(con *client.Connection, it maplelib.PacketIterator) (handl
 
 	w := worlds.Get(con.WorldId())
 
+	if w == nil || !w.Connected() {
+		err = errors.New("Selected a character in an invalid world")
+		return
+	}
+
 	// TODO: match user's subnet and connect to 127.0.0.1 if they are on the same subnet
 
 	chanIp := make([]byte, 4) // maple doesn't support ipv6 :(
 	port := int16(-1)
 
 	ch := w.Channel(con.Channel())
-	if ch != nil {
-		port = ch.Port()
-		// TODO: resolve this to the external ip address to actually make it work online
-		// TODO: this should be the chanserver's address
-		// FIXME
-		chanIp = common.RemoteAddrToBytes(w.WorldCon().Conn().RemoteAddr().String())
-		if len(chanIp) != 4 {
-			err = errors.New("Ipv6 not supported")
-			return
-		}
+
+	if ch == nil {
+		// TODO: find out the channel closed error packet header
+		fmt.Println(con.Conn().RemoteAddr(), "tried to connect to an offline channel")
+		handled = true
+		return
+	}
+
+	port = ch.Port()
+	// TODO: resolve this to the external ip address to actually make it work online
+	// TODO: this should be the chanserver's address
+	// FIXME
+	chanIp = common.RemoteAddrToBytes(w.WorldCon().Conn().RemoteAddr().String())
+	if len(chanIp) != 4 {
+		err = errors.New("Ipv6 not supported")
+		return
 	}
 
 	err = con.SendPacket(packets.ConnectIp(chanIp, port, charId))

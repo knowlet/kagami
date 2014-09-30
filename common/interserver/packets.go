@@ -66,3 +66,27 @@ func RegisterChannel(channelId int8, ipbytes []byte, channelPort int16) (p maple
 	p.Encode2s(channelPort)
 	return
 }
+
+// SyncPlayerJoinedChannel returns a packet that notifies the worldserver that a player has joined a channel
+func SyncPlayerJoinedChannel(channelid int8) (p maplelib.Packet) {
+	p = packets.NewEncryptedPacket(IOSyncPlayerJoinedChannel)
+	p.Encode1s(channelid)
+	return
+}
+
+// SyncPlayerLeftChannel returns a packet that notifies the worldserver that a player has left a channel
+func SyncPlayerLeftChannel(channelid int8) (p maplelib.Packet) {
+	p = packets.NewEncryptedPacket(IOSyncPlayerLeftChannel)
+	p.Encode1s(channelid)
+	return
+}
+
+// SyncChannelPopulation returns a packet that notifies the loginserver to update a channel's population
+func SyncChannelPopulation(worldid int8, channelid int8, population int32) (p maplelib.Packet) {
+	p = packets.NewEncryptedPacket(IOSyncChannelPopulation)
+	p.Encode1s(worldid)
+	p.Encode1s(channelid)
+	p.Encode4s(population)
+	return
+	return
+}

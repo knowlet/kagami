@@ -27,7 +27,7 @@ import (
 	"github.com/Francesco149/maplelib"
 )
 
-// Handle handles inter-server loginserver packets
+// HandleInter handles inter-server loginserver packets
 func HandleInter(con *worlds.Connection, p maplelib.Packet) (handled bool, err error) {
 	handled = false
 	it := p.Begin()
@@ -62,11 +62,12 @@ func HandleInter(con *worlds.Connection, p maplelib.Packet) (handled bool, err e
 		return true, nil
 	}
 
-	// TODO
-
 	switch header {
 	case interserver.IORegisterChannel:
 		return handleRegisterChannel(con, it)
+
+	case interserver.IOSyncChannelPopulation:
+		return syncChannelPopulation(con, it)
 	}
 
 	return false, nil // forward packet to next handler
@@ -98,6 +99,39 @@ func handleRegisterChannel(con *worlds.Connection, it maplelib.PacketIterator) (
 	defer worlds.Unlock()
 	worlds.Get(con.WorldId()).AddChannel(id, worlds.NewChannel(port))
 	fmt.Println("Registered channel", id, "to", common.BytesToIpString(ipbytes), ":", port)
+	handled = err == nil
+	return
+}
+
+// syncChannelPopulation handles a request from the worldserver to update a channel's population
+func syncChannelPopulation(con *worlds.Connection, it maplelib.PacketIterator) (handled bool, err error) {
+	worldid, err := it.Decode1s()
+	channelid, err := it.Decode1s()
+	newpopulation, err := it.Decode4s()
+	if err != nil {
+		return
+	}
+
+	worlds.Lock()
+	defer worlds.Unlock()
+	w := worlds.Get(worldid)
+	if w == nil || !w.Connected() {
+		err = errors.New(fmt.Sprintf("World requested to update a non-existing/offline "+
+			"world's population, world", worldid))
+		return
+	}
+
+	ch := w.Channel(channelid)
+	if ch == nil {
+		err = errors.New(fmt.Sprintf("World requested to update a non-existing/offline "+
+			"channel's population, channel", channelid))
+		return
+	}
+
+	ch.SetPopulation(newpopulation)
+	fmt.Println("Updated channel", channelid, "'s population on world", worldid, "to", ch.Population())
+	w.UpdateLoad()
+	fmt.Println("Updated world", worldid, "'s load to", w.PlayerLoad(), "/", w.Conf().MaxPlayerLoad())
 	handled = err == nil
 	return
 }

@@ -65,3 +65,15 @@ func (w *World) RemoveChannel(id int8) { delete(w.channels, id) }
 
 // AddChannel adds a channel with the given id (overwrites if the given id already exists)
 func (w *World) AddChannel(id int8, ch *Channel) { w.channels[id] = ch }
+
+// UpdateLoad updates the world's load based on the channels load
+func (w *World) UpdateLoad() {
+	tmp := int32(0)
+	for _, channel := range w.channels {
+		if channel != nil {
+			tmp += channel.Population()
+		}
+	}
+
+	w.playerLoad = tmp
+}
