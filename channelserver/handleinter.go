@@ -23,6 +23,7 @@ import (
 
 import (
 	"github.com/Francesco149/kagami/channelserver/client"
+	"github.com/Francesco149/kagami/channelserver/players"
 	"github.com/Francesco149/kagami/channelserver/status"
 	"github.com/Francesco149/kagami/common"
 	"github.com/Francesco149/kagami/common/config"
@@ -46,6 +47,9 @@ func HandleInter(con *common.InterserverClient, p maplelib.Packet) (handled bool
 
 	case interserver.IOChannelConnect:
 		return handleChannelConnect(con, it)
+
+	case interserver.IOPlayerJoiningChannel:
+		return handlePlayerJoiningChannel(con, it)
 	}
 
 	return false, nil
@@ -164,6 +168,20 @@ func handleChannelConnect(con *common.InterserverClient, it maplelib.PacketItera
 
 	fmt.Println("Channel server is running!")
 
+	handled = err == nil
+	return
+}
+
+// handlePlayerJoiningChannel adds the pending player connection to the player pool
+func handlePlayerJoiningChannel(con *common.InterserverClient, it maplelib.PacketIterator) (handled bool, err error) {
+	charid, err := it.Decode4s()
+	ip, err := it.DecodeBuffer()
+	if err != nil {
+		return
+	}
+
+	fmt.Println("Added pending player connection from", common.BytesToIpString(ip))
+	players.AddPendingIp(charid, ip)
 	handled = err == nil
 	return
 }

@@ -115,3 +115,21 @@ func BytesToIpString(ip []byte) string {
 	}
 	return fmt.Sprintf("%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3])
 }
+
+// MakeWarning formats a warning message
+func MakeWarning(msg string) string {
+	return fmt.Sprint("\n",
+		"******* /!\\ WARNING /!\\ *******\n",
+		msg, "\n",
+		"*******************************\n",
+		"\n")
+}
+
+// MakeError formats an error message
+func MakeError(msg string) string {
+	return fmt.Sprint("\n",
+		"******** /!\\ ERROR /!\\ ********\n",
+		msg, "\n",
+		"*******************************\n",
+		"\n")
+}

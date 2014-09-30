@@ -17,18 +17,22 @@ package worlds
 
 // A Channel holds information about a single channel, such as the port and the population
 type Channel struct {
+	ip         []byte
 	port       int16
 	population int32
 }
 
 // NewChannel creates and returns a new channel object
-func NewChannel(chanport int16) *Channel {
+func NewChannel(ipbytes []byte, chanport int16) *Channel {
 	return &Channel{
+		ip:         ipbytes,
 		port:       chanport,
 		population: 0,
 	}
 }
 
+func (c *Channel) Ip() []byte              { return c.ip }
+func (c *Channel) SetIp(ip []byte)         { c.ip = ip }
 func (c *Channel) Port() int16             { return c.port }
 func (c *Channel) SetPort(port int16)      { c.port = port }
 func (c *Channel) Population() int32       { return c.population }

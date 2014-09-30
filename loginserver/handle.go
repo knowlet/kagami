@@ -24,6 +24,7 @@ import (
 import (
 	"github.com/Francesco149/kagami/common"
 	"github.com/Francesco149/kagami/common/consts"
+	"github.com/Francesco149/kagami/common/interserver"
 	"github.com/Francesco149/kagami/common/packets"
 	"github.com/Francesco149/kagami/loginserver/client"
 	"github.com/Francesco149/kagami/loginserver/items"
@@ -644,14 +645,15 @@ func handleCharSelect(con *client.Connection, it maplelib.PacketIterator) (handl
 
 	port = ch.Port()
 	// TODO: resolve this to the external ip address to actually make it work online
-	// TODO: this should be the chanserver's address
 	// FIXME
-	chanIp = common.RemoteAddrToBytes(w.WorldCon().Conn().RemoteAddr().String())
+	chanIp = ch.Ip()
 	if len(chanIp) != 4 {
 		err = errors.New("Ipv6 not supported")
 		return
 	}
 
+	charip := common.RemoteAddrToBytes(con.Conn().RemoteAddr().String())
+	w.WorldCon().SendPacket(interserver.MessageToChannel(con.Channel(), interserver.PlayerJoiningChannel(charId, charip)))
 	err = con.SendPacket(packets.ConnectIp(chanIp, port, charId))
 	handled = err == nil
 	return

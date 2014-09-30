@@ -16,19 +16,21 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"math/rand"
+	"time"
 )
 
 import (
 	"github.com/Francesco149/kagami/channelserver/client"
+	"github.com/Francesco149/kagami/channelserver/players"
 	"github.com/Francesco149/kagami/channelserver/status"
 	"github.com/Francesco149/kagami/common"
 	"github.com/Francesco149/kagami/common/interserver"
 	"github.com/Francesco149/kagami/common/packets"
 	"github.com/Francesco149/maplelib"
-	"math/rand"
-	"time"
 )
 
 // Handle handles channelserver packets
@@ -47,7 +49,11 @@ func Handle(con *client.Connection, p maplelib.Packet) (handled bool, err error)
 	}
 
 	switch header {
-	// TODO
+	case packets.IUnknownPlsIgnore1:
+		return true, nil
+
+	case packets.IUnknownPlsIgnore2:
+		return true, nil
 	}
 
 	return false, nil // forward packet to next handler
@@ -75,7 +81,7 @@ func connectData(con *client.Connection) (p maplelib.Packet) {
 
 	p.Encode1(100)  // TODO: get real buddylist capacity
 	p.Encode4(1337) // TODO: get real meso
-	// TODO: get real equip slots
+	// TODO: get real inv slots
 	p.Encode1(100) // equip slots
 	p.Encode1(100) // use slots
 	p.Encode1(100) // set-up slots
@@ -116,12 +122,41 @@ func connectData(con *client.Connection) (p maplelib.Packet) {
 func handleLoadCharacter(con *client.Connection, it maplelib.PacketIterator) (handled bool, err error) {
 	handled = false
 
-	// TODO: check for transfer packet
 	charid, err := it.Decode4s()
 	if err != nil {
 		return
 	}
 
+	charip := common.RemoteAddrToBytes(con.Conn().RemoteAddr().String())
+
+	// look for the character in the pending connections list then check the ip
+	// if the ips don't match, then someone is trying to remote hack
+	starttime := time.Now().Unix()
+	for {
+		if time.Now().Unix()-starttime > 30 {
+			break
+		}
+
+		players.Lock()
+		expectedip := players.PendingIp(charid)
+		players.Unlock()
+		if expectedip != nil {
+			if !bytes.Equal(charip, expectedip) {
+				err = errors.New(fmt.Sprint(common.BytesToIpString(charip), "tried to remote hack",
+					common.BytesToIpString(expectedip)))
+			}
+			break
+		}
+
+		time.Sleep(500 * time.Millisecond)
+	}
+	if err != nil {
+		return
+	}
+
+	players.Lock()
+	players.RemovePendingIp(charid)
+	players.Unlock()
 	con.SetCharId(charid)
 
 	// get char data from db

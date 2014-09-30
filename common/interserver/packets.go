@@ -88,5 +88,20 @@ func SyncChannelPopulation(worldid int8, channelid int8, population int32) (p ma
 	p.Encode1s(channelid)
 	p.Encode4s(population)
 	return
+}
+
+// MessageToChannel returns a packet that must be relayed to a certain channel
+func MessageToChannel(chanid int8, packet maplelib.Packet) (p maplelib.Packet) {
+	p = packets.NewEncryptedPacket(IOMessageToChannel)
+	p.Encode1s(chanid)
+	p.Append([]byte(packet))
+	return
+}
+
+// PlayerJoiningChannel returns a packet that notifies the channel server that a player is joining
+func PlayerJoiningChannel(charid int32, ip []byte) (p maplelib.Packet) {
+	p = packets.NewEncryptedPacket(IOPlayerJoiningChannel)
+	p.Encode4s(charid)
+	p.EncodeBuffer(ip)
 	return
 }

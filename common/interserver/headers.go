@@ -27,4 +27,6 @@ const (
 	IOSyncPlayerJoinedChannel = 0x1008
 	IOSyncPlayerLeftChannel   = 0x1009
 	IOSyncChannelPopulation   = 0x1010
+	IOMessageToChannel        = 0x1011
+	IOPlayerJoiningChannel    = 0x1012
 )

@@ -42,6 +42,9 @@ func HandleLogin(con *common.InterserverClient, p maplelib.Packet) (handled bool
 	switch header {
 	case interserver.IOWorldConnect:
 		return handleWorldConnect(con, it)
+
+	case interserver.IOMessageToChannel:
+		return handleMessageToChannel(con, it)
 	}
 
 	return false, nil
@@ -67,7 +70,6 @@ func handleWorldConnect(con *common.InterserverClient, it maplelib.PacketIterato
 		return
 	}
 
-	handled = true
 	fmt.Println("Handling world", worldid)
 	status.Lock()
 	defer status.Unlock()
@@ -115,5 +117,21 @@ func handleWorldConnect(con *common.InterserverClient, it maplelib.PacketIterato
 		})
 
 	fmt.Println("World server is running!")
+	handled = err == nil
+	return
+}
+
+// handleMessageToChannel relays a packet to the channel server
+func handleMessageToChannel(con *common.InterserverClient, it maplelib.PacketIterator) (handled bool, err error) {
+	chanid, err := it.Decode1s()
+	if err != nil {
+		return
+	}
+
+	channels.Lock()
+	defer channels.Unlock()
+	err = channels.Get(chanid).Conn().SendPacket(maplelib.Packet(it))
+
+	handled = err == nil
 	return
 }

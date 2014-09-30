@@ -66,6 +66,9 @@ func HandleInter(con *worlds.Connection, p maplelib.Packet) (handled bool, err e
 	case interserver.IORegisterChannel:
 		return handleRegisterChannel(con, it)
 
+	case interserver.IORemoveChannel:
+		return handleRemoveChannel(con, it)
+
 	case interserver.IOSyncChannelPopulation:
 		return syncChannelPopulation(con, it)
 	}
@@ -97,8 +100,37 @@ func handleRegisterChannel(con *worlds.Connection, it maplelib.PacketIterator) (
 
 	worlds.Lock()
 	defer worlds.Unlock()
-	worlds.Get(con.WorldId()).AddChannel(id, worlds.NewChannel(port))
+	w := worlds.Get(con.WorldId())
+
+	if w == nil || !w.Connected() {
+		err = errors.New(fmt.Sprint("Tried to register channel in non-existing or ",
+			"offline world ", con.WorldId()))
+	}
+
+	w.AddChannel(id, worlds.NewChannel(ipbytes, port))
 	fmt.Println("Registered channel", id, "to", common.BytesToIpString(ipbytes), ":", port)
+	handled = err == nil
+	return
+}
+
+// handleRemoveChannel handles a channel removal request
+func handleRemoveChannel(con *worlds.Connection, it maplelib.PacketIterator) (handled bool, err error) {
+	chanid, err := it.Decode1s()
+	if err != nil {
+		return
+	}
+
+	worlds.Lock()
+	defer worlds.Unlock()
+	w := worlds.Get(con.WorldId())
+
+	if w == nil || !w.Connected() {
+		err = errors.New(fmt.Sprint("Tried to delete channel in non-existing or ",
+			"offline world ", con.WorldId()))
+	}
+
+	w.RemoveChannel(chanid)
+	fmt.Println("Removed channel", chanid)
 	handled = err == nil
 	return
 }
@@ -116,14 +148,14 @@ func syncChannelPopulation(con *worlds.Connection, it maplelib.PacketIterator) (
 	defer worlds.Unlock()
 	w := worlds.Get(worldid)
 	if w == nil || !w.Connected() {
-		err = errors.New(fmt.Sprintf("World requested to update a non-existing/offline "+
+		err = errors.New(fmt.Sprint("World requested to update a non-existing/offline "+
 			"world's population, world", worldid))
 		return
 	}
 
 	ch := w.Channel(channelid)
 	if ch == nil {
-		err = errors.New(fmt.Sprintf("World requested to update a non-existing/offline "+
+		err = errors.New(fmt.Sprint("World requested to update a non-existing/offline "+
 			"channel's population, channel", channelid))
 		return
 	}
