@@ -21,6 +21,7 @@ Getting started
 ============
 Make sure that you have git and go installed and run the following commands to acquire all of the requires libraries.
 
+	go get github.com/jteeuwen/go-pkg-xmlx 
 	go get github.com/Francesco149/maplelib
 	go get github.com/ziutek/mymysql/thrsafe
 	go get github.com/ziutek/mymysql/autorc
@@ -37,9 +38,10 @@ Make sure that max_allowed_packet is set to at least 34M in your my.ini/my.cnf, 
 
 	go test github.com/ziutek/mymysql/...
 	
-Now you can go ahead and test maplelib:
+Now you can go ahead and test maplelib and xmlx:
 	
-	go test github.com/Francesco149/maplelib
+	go test go get github.com/jteeuwen/go-pkg-xmlx/...
+	go test github.com/Francesco149/maplelib/...
 
 Once you've made sure that all of the libraries are working properly, you can obtain the actual server:
 
