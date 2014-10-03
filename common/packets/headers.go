@@ -41,6 +41,7 @@ const (
 	OConnectData   = 0x005C // warp to map
 	OServerMessage = 0x0041
 	OChangeChannel = 0x0010
+	OUpdateStats   = 0x001C
 )
 
 // Recv packet headers
@@ -67,8 +68,11 @@ const (
 	IGuestLogin          = 0x0002
 	IUnknownPlsIgnore1   = 0x001A // this gets spammed while on login screen, apparently it means client error
 	IUnknownPlsIgnore2   = 0x000F
-	IPlayerUpdateIgnore  = 0x00C0
+	IPlayerUpdateIgnore  = 0x00C0 // shouldn't be received by the login server
 
 	// channel server
-	ILoadCharacter = 0x0014
+	ILoadCharacter    = 0x0014
+	IPlayerUpdate     = 0x00C0
+	IChangeMapSpecial = 0x005C
+	IMovePplayer      = 0x0026
 )

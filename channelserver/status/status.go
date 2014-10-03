@@ -18,9 +18,12 @@
 package status
 
 import "sync"
+
 import (
+	"github.com/Francesco149/kagami/channelserver/gamedata"
 	"github.com/Francesco149/kagami/common"
 	"github.com/Francesco149/kagami/common/config"
+	"github.com/Francesco149/maplelib/wz"
 )
 
 var mut sync.Mutex
@@ -30,6 +33,9 @@ var port int16 = 0
 var worldConf *config.WorldConf = nil
 var worldConn *common.InterserverClient = nil
 var loginConn *common.InterserverClient = nil
+var mapProvider wz.MapleDataProvider = nil
+var stringsProvider wz.MapleDataProvider = nil
+var mapFactory *gamedata.MapleMapFactory = nil
 
 // Lock locks the status mutex.
 // Must be called before performing any operation on
@@ -43,15 +49,21 @@ func Unlock() {
 	mut.Unlock()
 }
 
-func SetWorldId(wid int8)                      { worldId = wid }
-func WorldId() int8                            { return worldId }
-func SetChanId(cid int8)                       { chanId = cid }
-func ChanId() int8                             { return chanId }
-func SetPort(p int16)                          { port = p }
-func Port() int16                              { return port }
-func WorldConf() *config.WorldConf             { return worldConf }
-func SetWorldConf(c *config.WorldConf)         { worldConf = c }
-func WorldConn() *common.InterserverClient     { return worldConn }
-func SetWorldConn(c *common.InterserverClient) { worldConn = c }
-func LoginConn() *common.InterserverClient     { return loginConn }
-func SetLoginConn(c *common.InterserverClient) { loginConn = c }
+func SetWorldId(wid int8)                       { worldId = wid }
+func WorldId() int8                             { return worldId }
+func SetChanId(cid int8)                        { chanId = cid }
+func ChanId() int8                              { return chanId }
+func SetPort(p int16)                           { port = p }
+func Port() int16                               { return port }
+func WorldConf() *config.WorldConf              { return worldConf }
+func SetWorldConf(c *config.WorldConf)          { worldConf = c }
+func WorldConn() *common.InterserverClient      { return worldConn }
+func SetWorldConn(c *common.InterserverClient)  { worldConn = c }
+func LoginConn() *common.InterserverClient      { return loginConn }
+func SetLoginConn(c *common.InterserverClient)  { loginConn = c }
+func SetMapProvider(p wz.MapleDataProvider)     { mapProvider = p }
+func SetStringProvider(p wz.MapleDataProvider)  { stringsProvider = p }
+func SetMapFactory(f *gamedata.MapleMapFactory) { mapFactory = f }
+func MapProvider() wz.MapleDataProvider         { return mapProvider }
+func StringProvider() wz.MapleDataProvider      { return stringsProvider }
+func MapFactory() *gamedata.MapleMapFactory     { return mapFactory }

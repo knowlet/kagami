@@ -133,3 +133,14 @@ func MakeError(msg string) string {
 		"*******************************\n",
 		"\n")
 }
+
+// AnyNil returns true if any of the given values is nil
+func AnyNil(a ...interface{}) bool {
+	for _, val := range a {
+		if val == nil {
+			return true
+		}
+	}
+
+	return false
+}

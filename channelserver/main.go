@@ -24,18 +24,38 @@ import (
 )
 
 import (
+	"github.com/Francesco149/kagami/channelserver/gamedata"
 	"github.com/Francesco149/kagami/channelserver/status"
 	"github.com/Francesco149/kagami/common"
 	"github.com/Francesco149/kagami/common/consts"
 	"github.com/Francesco149/kagami/common/interserver"
 	"github.com/Francesco149/maplelib"
+	"github.com/Francesco149/maplelib/wz"
 )
+
+func checkError(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
 	fmt.Println("Kagami Pre-Alpha")
 	fmt.Println("Initializing ChannelServer...")
+
+	fmt.Println("Loading Map.wz and String.wz")
+	mapProvider, err := wz.NewMapleDataProvider("wz/Map.wz")
+	checkError(err)
+	stringProvider, err := wz.NewMapleDataProvider("wz/String.wz")
+	checkError(err)
+	factory, err := gamedata.NewMapleMapFactory(mapProvider, stringProvider)
+	checkError(err)
+
+	status.SetMapProvider(mapProvider)
+	status.SetStringProvider(stringProvider)
+	status.SetMapFactory(factory)
 
 	// connect to loginserver
 	fmt.Println("Waiting for the loginserver to assign a worldserver...")

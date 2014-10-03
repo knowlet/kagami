@@ -177,14 +177,15 @@ func (c *Connection) EncodeQuestInfo(p *maplelib.Packet) {
 }
 
 // SaveStats saves all of the player's stats to the database
-func (c *Connection) SaveStats() {
+func (c *Connection) SaveStats() (err error) {
 	// TODO
+	return nil
 }
 
 // Saves saves all of the player's information to the database
-func (c *Connection) Save() {
+func (c *Connection) Save() (err error) {
 	fmt.Println("Saving", c.Name(), "'s data")
-	c.SaveStats()
+	err = c.SaveStats()
 	// TODO: save inventory
 	// TODO: save storage
 	// TODO: save monster book
@@ -193,4 +194,5 @@ func (c *Connection) Save() {
 	// TODO: save quests
 	// TODO: save skills
 	// TODO: save variables
+	return
 }

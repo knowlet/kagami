@@ -155,15 +155,21 @@ func handleChannelConnect(con *common.InterserverClient, it maplelib.PacketItera
 		func(con common.Connection) {
 			scon, ok := con.(*client.Connection)
 			if !ok {
-				panic(errors.New("Client handler failed type assertion on disconnect"))
+				panic(errors.New(common.MakeError("Client handler failed " +
+					"type assertion on disconnect")))
 			}
 			status.WorldConn().SendPacket(interserver.SyncPlayerLeftChannel(status.ChanId()))
 			err = scon.SetDBOnline(false)
 			if err != nil {
-				fmt.Println("Failed to disconnect", scon.Name(), ":", err)
+				fmt.Println(common.MakeError(
+					fmt.Sprint("Failed to disconnect ", scon.Name(), ": ", err)))
 			}
 
-			scon.Save()
+			err = scon.Save()
+			if err != nil {
+				fmt.Println(common.MakeError(
+					fmt.Sprint("Failed to save ", scon.Name(), ": ", err)))
+			}
 		})
 
 	fmt.Println("Channel server is running!")

@@ -54,6 +54,12 @@ func Handle(con *client.Connection, p maplelib.Packet) (handled bool, err error)
 
 	case packets.IUnknownPlsIgnore2:
 		return true, nil
+
+	case packets.IPlayerUpdate:
+		return handlePlayerUpdate(con)
+
+	case packets.IChangeMapSpecial:
+		return handleChangeMapSpecial(con, it)
 	}
 
 	return false, nil // forward packet to next handler
@@ -264,6 +270,39 @@ func handleLoadCharacter(con *client.Connection, it maplelib.PacketIterator) (ha
 	status.WorldConn().SendPacket(interserver.SyncPlayerJoinedChannel(status.ChanId()))
 
 	// TODO: add to player pool
+
+	handled = err == nil
+	return
+}
+
+// handlePlayerUpdate handles a request to save the player's data to the database
+func handlePlayerUpdate(con *client.Connection) (handled bool, err error) {
+	// TODO: rate check on this packet to prevent clients from spamming it to flood the database
+	err = con.Save()
+	handled = err == nil
+	return
+}
+
+// handleChangeMapSpecial handles a special map change packet
+func handleChangeMapSpecial(con *client.Connection, it maplelib.PacketIterator) (handled bool, err error) {
+	_, err = it.Decode1()
+	portalname, err := it.DecodeString()
+	_, err = it.Decode1()
+	_, err = it.Decode1()
+	if err != nil {
+		return
+	}
+
+	fmt.Println(con.Name(), "entered", portalname, "in map", con.MapId())
+	// TODO:
+
+	/*
+		if portal == nil {
+			err = con.SendPacket(packets.EnableActions())
+		} else {
+			err = con.SendPacket(packets.EnterPortal(portal))
+		}
+	*/
 
 	handled = err == nil
 	return
