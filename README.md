@@ -19,17 +19,35 @@ Feature progress
 
 Getting started
 ============
-First of all, you need to install [maplelib](https://github.com/Francesco149/maplelib) and  [mymysql](https://github.com/ziutek/mymysql).
+Make sure that you have git and go installed and run the following commands to acquire all of the requires libraries.
 
-Once you've done that, all that's left is to clone the repository.
-Make sure that you have git and go installed and run
+	go get github.com/Francesco149/maplelib
+	go get github.com/ziutek/mymysql/thrsafe
+	go get github.com/ziutek/mymysql/autorc
+	go get github.com/ziutek/mymysql/godrv
 
-    go get github.com/Francesco149/kagami
+You can test these libraries before building kagami if you want.
+First of all, create the test mysql user and database from your mysql console:
 
+	mysql> create database test;
+	mysql> grant all privileges on test.* to testuser@localhost;
+	mysql> set password for testuser@localhost = password("TestPasswd9");
+	
+Make sure that max_allowed_packet is set to at least 34M in your my.ini/my.cnf, then run the tests for the mymysql library:
 
-You can also manually clone the repository anywhere you want by running
+	go test github.com/ziutek/mymysql/...
+	
+Now you can go ahead and test maplelib:
+	
+	go test github.com/Francesco149/maplelib
 
-    git clone https://github.com/Francesco149/kagami.git
+Once you've made sure that all of the libraries are working properly, you can obtain the actual server:
+
+	go get github.com/Francesco149/kagami
+
+If you want, you can also manually clone the repository anywhere you want by running
+
+	git clone https://github.com/Francesco149/kagami.git
     
 Before you run the server you will also need to configure your MySQL database 
 info in kagami/common/consts/consts.go . Don't worry, this is temporary - 
@@ -44,16 +62,16 @@ Running the server
 ============
 To compile the server, all you have to do is:
 
-    go install github.com/Francesco149/kagami/...
+	go install github.com/Francesco149/kagami/...
 
 And then simply run loginserver, worldserver and as many channels servers as you like in your $GOPATH/bin directory.
     
 Documentation
 ============
-You can get the documentation with the built-in godoc 
+You can view the documentation as HTML by simply running
 
-    godoc github.com/Francesco149/kagami
-    
-If you're looking for a specific function or type just use
+	godoc -http=":6060"
 
-    godoc github.com/Francesco149/kagami MyFunction
+and visiting
+
+	http://localhost:6060/pkg/github.com/Francesco149/kagami/
