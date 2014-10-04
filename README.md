@@ -5,8 +5,6 @@ credits to them for figuring packet structures and other stuff out, this is mere
 
 Support me!
 ============
-Support me!
-============
 Like my releases? Donate me a coffe!
 
 Paypal: [click](http://hnng.moe/6M)
