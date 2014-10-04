@@ -27,9 +27,6 @@ import (
 	"github.com/Francesco149/maplelib/wz"
 )
 
-// shouldn't need any thread safety, as it's only
-// used for maps which are already thread safe
-
 var reactorData wz.MapleDataProvider = nil
 var reactorStats = make(map[int32]*MapleReactorStats)
 

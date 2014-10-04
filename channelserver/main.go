@@ -53,9 +53,12 @@ func main() {
 	factory, err := gamedata.NewMapleMapFactory(mapProvider, stringProvider)
 	checkError(err)
 
-	status.SetMapProvider(mapProvider)
-	status.SetStringProvider(stringProvider)
-	status.SetMapFactory(factory)
+	status.Init()
+	st := <-status.Get
+	st.SetMapProvider(mapProvider)
+	st.SetStringsProvider(stringProvider)
+	st.SetMapFactory(factory)
+	status.Get <- st
 
 	// connect to loginserver
 	fmt.Println("Waiting for the loginserver to assign a worldserver...")
@@ -68,10 +71,11 @@ func main() {
 			return HandleInter(scon, p)
 		},
 		func(con net.Conn) common.Connection {
-			c := common.NewInterserverClient(con, consts.InterServerPassword, interserver.ChannelServer)
-			status.Lock()
-			defer status.Unlock()
-			status.SetLoginConn(c)
+			c := common.NewInterserverClient(con, consts.InterServerPassword,
+				interserver.ChannelServer)
+			st := <-status.Get
+			defer func() { status.Get <- st }()
+			st.SetLoginConn(c)
 			return c
 		})
 }

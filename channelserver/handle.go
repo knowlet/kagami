@@ -72,10 +72,10 @@ func Handle(con *client.Connection, p maplelib.Packet) (handled bool, err error)
 
 // connectData returns a packet that sends the initial character data when
 // a player connects to the channelserver
-func connectData(con *client.Connection) (p maplelib.Packet) {
+func connectData(con *client.Connection, chanid int8) (p maplelib.Packet) {
 	p = packets.NewEncryptedPacket(packets.OWarpToMap)
 	// TODO: add all missing data
-	p.Encode4s(int32(status.ChanId()))
+	p.Encode4s(int32(chanid))
 	p.Encode1(0x01)          // what the hell is this
 	p.Encode1(0x01)          // what the hell is this
 	p.Encode2(0x0000)        // what the hell is this
@@ -240,17 +240,17 @@ func handleLoadCharacter(con *client.Connection, it maplelib.PacketIterator) (ha
 
 	// TODO: init position, stance and foothold
 
-	status.Lock()
-	con.SendPacket(connectData(con))
+	stts := <-status.Get
+	defer func() { status.Get <- stts }()
 
-	conf := status.WorldConf()
-	if len(conf.ScrollingHeader()) != 0 {
-		err = con.SendPacket(packets.ScrollingHeader(conf.ScrollingHeader()))
+	con.SendPacket(connectData(con, stts.ChanId()))
+
+	if len(stts.WorldConf().ScrollingHeader()) != 0 {
+		err = con.SendPacket(packets.ScrollingHeader(stts.WorldConf().ScrollingHeader()))
 		if err != nil {
 			return
 		}
 	}
-	status.Unlock()
 
 	// TODO: init pets
 	// TODO: send keymaps
@@ -271,9 +271,7 @@ func handleLoadCharacter(con *client.Connection, it maplelib.PacketIterator) (ha
 	con.SetConnected(true)
 	fmt.Println(con.String())
 
-	status.Lock()
-	defer status.Unlock()
-	status.WorldConn().SendPacket(interserver.SyncPlayerJoinedChannel(status.ChanId()))
+	stts.WorldConn().SendPacket(interserver.SyncPlayerJoinedChannel(stts.ChanId()))
 
 	// TODO: add to player pool
 

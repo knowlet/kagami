@@ -102,9 +102,9 @@ func handleLoginChannelConnect(con *common.InterserverClient, it maplelib.Packet
 		},
 		func(con net.Conn) common.Connection {
 			c := common.NewInterserverClient(con, consts.InterServerPassword, interserver.ChannelServer)
-			status.Lock()
-			defer status.Unlock()
-			status.SetWorldConn(c)
+			st := <-status.Get
+			defer func() { status.Get <- st }()
+			st.SetWorldConn(c)
 			return c
 		})
 
@@ -134,11 +134,11 @@ func handleChannelConnect(con *common.InterserverClient, it maplelib.PacketItera
 	}
 
 	fmt.Println("Handling channel", chanid, "on port", port)
-	status.Lock()
-	status.SetChanId(chanid)
-	status.SetPort(port)
-	status.SetWorldConf(conf)
-	status.Unlock()
+	st := <-status.Get
+	defer func() { status.Get <- st }()
+	st.SetChanId(chanid)
+	st.SetPort(port)
+	st.SetWorldConf(conf)
 	// TODO: set map unload time
 
 	// accept client connections in a new thread
@@ -159,7 +159,9 @@ func handleChannelConnect(con *common.InterserverClient, it maplelib.PacketItera
 				panic(errors.New(utils.MakeError("Client handler failed " +
 					"type assertion on disconnect")))
 			}
-			status.WorldConn().SendPacket(interserver.SyncPlayerLeftChannel(status.ChanId()))
+			st := <-status.Get
+			defer func() { status.Get <- st }()
+			st.WorldConn().SendPacket(interserver.SyncPlayerLeftChannel(st.ChanId()))
 			err = scon.SetDBOnline(false)
 			if err != nil {
 				fmt.Println(utils.MakeError(

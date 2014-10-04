@@ -17,8 +17,6 @@
 // such as world config, port and connections that are shared globally within the package
 package status
 
-import "sync"
-
 import (
 	"github.com/Francesco149/kagami/channelserver/gamedata"
 	"github.com/Francesco149/kagami/common"
@@ -26,44 +24,49 @@ import (
 	"github.com/Francesco149/maplelib/wz"
 )
 
-var mut sync.Mutex
-var worldId int8 = -1 // TODO: use atomic integers on these instead of the mutex
-var chanId int8 = -1
-var port int16 = 0
-var worldConf *config.WorldConf = nil
-var worldConn *common.InterserverClient = nil
-var loginConn *common.InterserverClient = nil
-var mapProvider wz.MapleDataProvider = nil
-var stringsProvider wz.MapleDataProvider = nil
-var mapFactory *gamedata.MapleMapFactory = nil
+var Get = make(chan *Status, 1)
 
-// Lock locks the status mutex.
-// Must be called before performing any operation on
-// the channelserver status
-func Lock() {
-	mut.Lock()
+type Status struct {
+	worldId, chanId int8
+	port            int16
+	worldConf       *config.WorldConf
+	worldConn       *common.InterserverClient
+	loginConn       *common.InterserverClient
+	mapProvider     wz.MapleDataProvider
+	stringsProvider wz.MapleDataProvider
+	mapFactory      *gamedata.MapleMapFactory
 }
 
-// Unlock unlocks the status mutex.
-func Unlock() {
-	mut.Unlock()
-}
+func (this *Status) WorldId() int8                         { return this.worldId }
+func (this *Status) ChanId() int8                          { return this.chanId }
+func (this *Status) Port() int16                           { return this.port }
+func (this *Status) WorldConf() *config.WorldConf          { return this.worldConf }
+func (this *Status) WorldConn() *common.InterserverClient  { return this.worldConn }
+func (this *Status) LoginConn() *common.InterserverClient  { return this.loginConn }
+func (this *Status) MapProvider() wz.MapleDataProvider     { return this.mapProvider }
+func (this *Status) StringsProvider() wz.MapleDataProvider { return this.stringsProvider }
+func (this *Status) MapFactory() *gamedata.MapleMapFactory { return this.mapFactory }
 
-func SetWorldId(wid int8)                       { worldId = wid }
-func WorldId() int8                             { return worldId }
-func SetChanId(cid int8)                        { chanId = cid }
-func ChanId() int8                              { return chanId }
-func SetPort(p int16)                           { port = p }
-func Port() int16                               { return port }
-func WorldConf() *config.WorldConf              { return worldConf }
-func SetWorldConf(c *config.WorldConf)          { worldConf = c }
-func WorldConn() *common.InterserverClient      { return worldConn }
-func SetWorldConn(c *common.InterserverClient)  { worldConn = c }
-func LoginConn() *common.InterserverClient      { return loginConn }
-func SetLoginConn(c *common.InterserverClient)  { loginConn = c }
-func SetMapProvider(p wz.MapleDataProvider)     { mapProvider = p }
-func SetStringProvider(p wz.MapleDataProvider)  { stringsProvider = p }
-func SetMapFactory(f *gamedata.MapleMapFactory) { mapFactory = f }
-func MapProvider() wz.MapleDataProvider         { return mapProvider }
-func StringProvider() wz.MapleDataProvider      { return stringsProvider }
-func MapFactory() *gamedata.MapleMapFactory     { return mapFactory }
+func (this *Status) SetWorldId(v int8)                         { this.worldId = v }
+func (this *Status) SetChanId(v int8)                          { this.chanId = v }
+func (this *Status) SetPort(v int16)                           { this.port = v }
+func (this *Status) SetWorldConf(v *config.WorldConf)          { this.worldConf = v }
+func (this *Status) SetWorldConn(v *common.InterserverClient)  { this.worldConn = v }
+func (this *Status) SetLoginConn(v *common.InterserverClient)  { this.loginConn = v }
+func (this *Status) SetMapProvider(v wz.MapleDataProvider)     { this.mapProvider = v }
+func (this *Status) SetStringsProvider(v wz.MapleDataProvider) { this.stringsProvider = v }
+func (this *Status) SetMapFactory(v *gamedata.MapleMapFactory) { this.mapFactory = v }
+
+func Init() {
+	Get <- &Status{
+		worldId:         -1,
+		chanId:          -1,
+		port:            -1,
+		worldConf:       nil,
+		worldConn:       nil,
+		loginConn:       nil,
+		mapProvider:     nil,
+		stringsProvider: nil,
+		mapFactory:      nil,
+	}
+}

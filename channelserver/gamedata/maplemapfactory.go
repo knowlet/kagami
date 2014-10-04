@@ -23,7 +23,6 @@ import (
 	"image"
 	"math/rand"
 	"strconv"
-	"sync"
 )
 
 import (
@@ -40,7 +39,6 @@ type MapleMapFactory struct {
 	source   wz.MapleDataProvider
 	nameData wz.MapleData
 	maps     map[int32]*MapleMap
-	mut      sync.Mutex
 }
 
 // NewMapleMapFactory initializes a new map factory from the given Map.wz and String.wz
@@ -66,13 +64,9 @@ func DebugPrintln(a ...interface{}) {
 
 // Get looks up the given map in wz files and initializes a new map object.
 // respawns, npcs and reactors determine whether those objects will be loaded or not.
-// Thread safe.
 func (f *MapleMapFactory) Get(mapid int32, respawns, npcs, reactors bool) *MapleMap {
 	DebugPrintln(fmt.Sprintf("MapleMapFactory.Get(%v, %v, %v, %v)",
 		mapid, respawns, npcs, reactors))
-
-	f.mut.Lock()
-	defer f.mut.Unlock()
 
 	// see if the map was already previously loaded
 	res := f.maps[mapid]

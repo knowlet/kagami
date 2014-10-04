@@ -135,7 +135,11 @@ func (c *Connection) MapId() int32                        { return c.mapid }
 func (c *Connection) SetMapId(mapid int32) error {
 	c.mapid = mapid
 	fmt.Println("loading map", c.mapid)
-	c.curmap = status.MapFactory().Get(mapid, true, true, true)
+
+	st := <-status.Get
+	defer func() { status.Get <- st }()
+	c.curmap = st.MapFactory().Get(mapid, true, true, true)
+
 	if c.curmap == nil {
 		return errors.New("failed to load map")
 	}
@@ -190,9 +194,9 @@ func (c *Connection) WarpToMap(newmap *gamedata.MapleMap,
 		pid -= 2
 	}
 
-	status.Lock()
-	defer status.Unlock()
-	return c.SendPacket(packets.WarpToMap(newmap.Id(), pid, 50, status.ChanId())) // todo: real hp
+	st := <-status.Get
+	defer func() { status.Get <- st }()
+	return c.SendPacket(packets.WarpToMap(newmap.Id(), pid, 50, st.ChanId())) // todo: real hp
 
 	// TODO: update party, player pool and everything
 }

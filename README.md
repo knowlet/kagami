@@ -3,6 +3,20 @@ This project is still extremely early, so it only does very few things at the mo
 Most of this is put together by studying TitanMS, OdinMS and Vana so huge 
 credits to them for figuring packet structures and other stuff out, this is merely a Go implementation.
 
+Support me!
+============
+Support me!
+============
+Like my releases? Donate me a coffe!
+
+Paypal: [click](http://hnng.moe/6M)
+
+Litecoin: LUZm98D1nPhNQBw9QjkSS9XJee9X5hPjw3
+
+Bitcoin: [15Jz8stcnkorzwCbUNk3qQbg2H9eySKXtb](bitcoin:15Jz8stcnkorzwCbUNk3qQbg2H9eySKXtb?label=donations) or [Bitcoin QR Code](http://hnng.moe/f/CM)
+
+Dogecoin: [DDaYKDUxib2SnVEk9trG98ajCyu1Hw9zgQ](dogecoin:DDaYKDUxib2SnVEk9trG98ajCyu1Hw9zgQ?label=donations&message=wow%20much%20donate%20very%20thanks) or [Dogecoin QR Code](http://hnng.moe/f/CL)
+
 Feature progress
 ============
 * Initial handshake with the client - [done](http://www.hnng.moe/f/49)
