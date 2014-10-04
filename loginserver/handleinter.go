@@ -21,8 +21,8 @@ import (
 )
 
 import (
-	"github.com/Francesco149/kagami/common"
 	"github.com/Francesco149/kagami/common/interserver"
+	"github.com/Francesco149/kagami/common/utils"
 	"github.com/Francesco149/kagami/loginserver/worlds"
 	"github.com/Francesco149/maplelib"
 )
@@ -108,7 +108,7 @@ func handleRegisterChannel(con *worlds.Connection, it maplelib.PacketIterator) (
 	}
 
 	w.AddChannel(id, worlds.NewChannel(ipbytes, port))
-	fmt.Println("Registered channel", id, "to", common.BytesToIpString(ipbytes), ":", port)
+	fmt.Println("Registered channel", id, "to", utils.BytesToIpString(ipbytes), ":", port)
 	handled = err == nil
 	return
 }

@@ -88,6 +88,5 @@ func (this *MapleGenericPortal) SetPos(pos image.Point) { this.position = pos }
 func (this *MapleGenericPortal) SetTarget(v string)     { this.target = v }
 func (this *MapleGenericPortal) SetTargetMapId(v int32) { this.targetmap = v }
 func (this *MapleGenericPortal) SetScriptName(v string) { this.scriptName = v }
-
-func (this *MapleGenericPortal) SetState(v bool) { this.portalState = v }
-func (this *MapleGenericPortal) State() bool     { return this.portalState }
+func (this *MapleGenericPortal) SetState(v bool)        { this.portalState = v }
+func (this *MapleGenericPortal) State() bool            { return this.portalState }

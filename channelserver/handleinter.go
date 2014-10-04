@@ -29,6 +29,7 @@ import (
 	"github.com/Francesco149/kagami/common/config"
 	"github.com/Francesco149/kagami/common/consts"
 	"github.com/Francesco149/kagami/common/interserver"
+	"github.com/Francesco149/kagami/common/utils"
 	"github.com/Francesco149/maplelib"
 )
 
@@ -91,7 +92,7 @@ func handleLoginChannelConnect(con *common.InterserverClient, it maplelib.Packet
 	}
 
 	// connect to worldserver
-	go common.Connect("worldserver", fmt.Sprintf("%s:%d", common.BytesToIpString(ip), port),
+	go common.Connect("worldserver", fmt.Sprintf("%s:%d", utils.BytesToIpString(ip), port),
 		func(con common.Connection, p maplelib.Packet) (bool, error) {
 			scon, ok := con.(*common.InterserverClient)
 			if !ok {
@@ -155,19 +156,19 @@ func handleChannelConnect(con *common.InterserverClient, it maplelib.PacketItera
 		func(con common.Connection) {
 			scon, ok := con.(*client.Connection)
 			if !ok {
-				panic(errors.New(common.MakeError("Client handler failed " +
+				panic(errors.New(utils.MakeError("Client handler failed " +
 					"type assertion on disconnect")))
 			}
 			status.WorldConn().SendPacket(interserver.SyncPlayerLeftChannel(status.ChanId()))
 			err = scon.SetDBOnline(false)
 			if err != nil {
-				fmt.Println(common.MakeError(
+				fmt.Println(utils.MakeError(
 					fmt.Sprint("Failed to disconnect ", scon.Name(), ": ", err)))
 			}
 
 			err = scon.Save()
 			if err != nil {
-				fmt.Println(common.MakeError(
+				fmt.Println(utils.MakeError(
 					fmt.Sprint("Failed to save ", scon.Name(), ": ", err)))
 			}
 		})
@@ -186,7 +187,7 @@ func handlePlayerJoiningChannel(con *common.InterserverClient, it maplelib.Packe
 		return
 	}
 
-	fmt.Println("Added pending player connection from", common.BytesToIpString(ip))
+	fmt.Println("Added pending player connection from", utils.BytesToIpString(ip))
 	players.AddPendingIp(charid, ip)
 	handled = err == nil
 	return

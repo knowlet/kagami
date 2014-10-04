@@ -24,7 +24,7 @@ import (
 )
 
 import (
-	"github.com/Francesco149/kagami/common"
+	"github.com/Francesco149/kagami/common/utils"
 	"github.com/Francesco149/maplelib/wz"
 )
 
@@ -62,7 +62,7 @@ func (f *PortalFactory) loadPortal(portal IMapleGenericPortal, portalData wz.Map
 	ptargetid := wz.GetInt(portalData.ChildByPath("tm"))
 	px := wz.GetInt(portalData.ChildByPath("x"))
 	py := wz.GetInt(portalData.ChildByPath("y"))
-	if common.AnyNil(pname, ptargetname, ptargetid, px, py) {
+	if utils.AnyNil(pname, ptargetname, ptargetid, px, py) {
 		err = errors.New("found nil data")
 		return
 	}

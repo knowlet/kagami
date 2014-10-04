@@ -23,7 +23,7 @@ import (
 )
 
 import (
-	"github.com/Francesco149/kagami/common"
+	"github.com/Francesco149/kagami/common/utils"
 	"github.com/Francesco149/maplelib/wz"
 )
 
@@ -112,7 +112,7 @@ func NewMapleReactorStats(reactId int32) *MapleReactorStats {
 			if *ptype == 100 {
 				pfirst := wz.GetIntConvert(reactorInfoData.ChildByPath("0"))
 				psecond := wz.GetIntConvert(reactorInfoData.ChildByPath("1"))
-				if common.AnyNil(pfirst, psecond) {
+				if utils.AnyNil(pfirst, psecond) {
 					return nil
 				}
 
@@ -121,7 +121,7 @@ func NewMapleReactorStats(reactId int32) *MapleReactorStats {
 				if !areaSet {
 					plt := wz.GetPoint(reactorInfoData.ChildByPath("lt"))
 					prb := wz.GetPoint(reactorInfoData.ChildByPath("rb"))
-					if common.AnyNil(plt, prb) {
+					if utils.AnyNil(plt, prb) {
 						return nil
 					}
 

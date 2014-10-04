@@ -26,6 +26,7 @@ import (
 	"github.com/Francesco149/kagami/common/consts"
 	"github.com/Francesco149/kagami/common/interserver"
 	"github.com/Francesco149/kagami/common/packets"
+	"github.com/Francesco149/kagami/common/utils"
 	"github.com/Francesco149/kagami/loginserver/client"
 	"github.com/Francesco149/kagami/loginserver/items"
 	"github.com/Francesco149/kagami/loginserver/validators"
@@ -117,7 +118,7 @@ func handleLoginPassword(con *client.Connection, it maplelib.PacketIterator) (ha
 		return
 	}
 
-	ip := common.RemoteAddrToIp(con.Conn().RemoteAddr().String())
+	ip := utils.RemoteAddrToIp(con.Conn().RemoteAddr().String())
 	// we don't need the extra data
 
 	if len(user) > consts.MaxNameSize || len(user) < consts.MinNameSize {
@@ -215,7 +216,8 @@ func handleLoginPassword(con *client.Connection, it maplelib.PacketIterator) (ha
 			// the user is ip banned
 			// I don't think this date matters
 			ipbantime := time.Date(7100, time.January, 1, 0, 0, 0, 0, time.Local)
-			err = con.SendPacket(packets.LoginBanned(common.UnixToTempBanTimestamp(ipbantime.Unix()), packets.BanDeleted))
+			err = con.SendPacket(packets.LoginBanned(utils.UnixToTempBanTimestamp(
+				ipbantime.Unix()), packets.BanDeleted))
 		} else {
 			// store account info obtained from the database
 			dbpassword := rows[0].Str(colpassword)
@@ -239,8 +241,8 @@ func handleLoginPassword(con *client.Connection, it maplelib.PacketIterator) (ha
 					err = con.SendPacket(packets.LoginFailed(packets.LoginIncorrectPassword))
 				} else {
 					// the unhashed password is valid, hash it
-					newsalt := common.MakeSalt()
-					hashedpass := common.HashPassword(pass, newsalt)
+					newsalt := utils.MakeSalt()
+					hashedpass := utils.HashPassword(pass, newsalt)
 
 					st, err = db.Prepare("UPDATE accounts SET password = ?, salt = ? WHERE id = ?")
 					_, err = st.Run(hashedpass, newsalt, userid)
@@ -252,7 +254,7 @@ func handleLoginPassword(con *client.Connection, it maplelib.PacketIterator) (ha
 				}
 
 			// regularly hashed password that matches the account's password
-			case common.HashPassword(pass, dbsalt) == dbpassword:
+			case utils.HashPassword(pass, dbsalt) == dbpassword:
 				successful = true
 
 			// invalid password
@@ -271,7 +273,7 @@ func handleLoginPassword(con *client.Connection, it maplelib.PacketIterator) (ha
 
 	// correct info but the account is banned
 	if successful && banned > 0 {
-		err = con.SendPacket(packets.LoginBanned(common.UnixToTempBanTimestamp(bantime), byte(banreason)))
+		err = con.SendPacket(packets.LoginBanned(utils.UnixToTempBanTimestamp(bantime), byte(banreason)))
 		successful = false
 	}
 
@@ -652,7 +654,7 @@ func handleCharSelect(con *client.Connection, it maplelib.PacketIterator) (handl
 		return
 	}
 
-	charip := common.RemoteAddrToBytes(con.Conn().RemoteAddr().String())
+	charip := utils.RemoteAddrToBytes(con.Conn().RemoteAddr().String())
 	w.WorldCon().SendPacket(interserver.MessageToChannel(con.Channel(), interserver.PlayerJoiningChannel(charId, charip)))
 	err = con.SendPacket(packets.ConnectIp(chanIp, port, charId))
 	handled = err == nil

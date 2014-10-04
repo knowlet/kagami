@@ -20,7 +20,10 @@ import (
 	"net"
 )
 
-import "github.com/Francesco149/maplelib"
+import (
+	"github.com/Francesco149/kagami/common/utils"
+	"github.com/Francesco149/maplelib"
+)
 
 // A PacketHandler is a generic packet handling function signature
 type PacketHandler func(con Connection, p maplelib.Packet) (handled bool, err error)
@@ -53,13 +56,13 @@ func HandleLoop(name string, basecon net.Conn, handler PacketHandler,
 		if !handled {
 			handled, err = handler(con, inpacket)
 			if err != nil {
-				fmt.Println(MakeError(err.Error()))
+				fmt.Println(utils.MakeError(err.Error()))
 				break
 			}
 		}
 
 		if !handled {
-			fmt.Println(MakeWarning(fmt.Sprint("Unhandled ", name, " packet ", inpacket)))
+			fmt.Println(utils.MakeWarning(fmt.Sprint("Unhandled ", name, " packet ", inpacket)))
 			//break
 		}
 	}

@@ -13,7 +13,8 @@
    along with kagami. If not, see <http://www.gnu.org/licenses/>.
 */
 
-package common
+// Package utils contains various utility functions shared by multiple files
+package utils
 
 import (
 	"crypto/rand"
@@ -143,4 +144,10 @@ func AnyNil(a ...interface{}) bool {
 	}
 
 	return false
+}
+
+// A Pair holds two values of any type that can be
+// casted back to their original type through type assertions
+type Pair struct {
+	First, Second interface{}
 }

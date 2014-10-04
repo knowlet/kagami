@@ -15,7 +15,11 @@
 
 package packets
 
-import "github.com/Francesco149/maplelib"
+import (
+	"github.com/Francesco149/kagami/common/utils"
+	"github.com/Francesco149/maplelib"
+	"sort"
+)
 
 // ***********************************************************************
 // Login Server
@@ -314,16 +318,16 @@ const (
 )
 
 /*
-	ServerMessage returns a server message packet
+   ServerMessage returns a server message packet
 
-	Possible values for msgtype:
-	ServerMessageNotice = 0 // [Notice]
-	ServerMessagePopup = 1 // Popup
-	ServerMessageMega = 2 // Megaphone
-	ServerMessageSmega = 3 // Super Megaphone
-	ServerMessageScrollingHeader = 4 // Scrolling header
-	ServerMessagePinkText = 5 // Pink text
-	ServerMessageLightBlueText = 6 // Light blue text
+   Possible values for msgtype:
+   ServerMessageNotice = 0 // [Notice]
+   ServerMessagePopup = 1 // Popup
+   ServerMessageMega = 2 // Megaphone
+   ServerMessageSmega = 3 // Super Megaphone
+   ServerMessageScrollingHeader = 4 // Scrolling header
+   ServerMessagePinkText = 5 // Pink text
+   ServerMessageLightBlueText = 6 // Light blue text
 */
 func ServerMessage(msgtype, channel int8, message string,
 	isScrollingHeader bool, megaEar bool) (p maplelib.Packet) {
@@ -363,5 +367,107 @@ func ChangeChannel(ip []byte, port int16) (p maplelib.Packet) {
 	p.Encode1(0x01)
 	p.Append(ip)
 	p.Encode2s(port)
+	return
+}
+
+// Possible values for the first element of the pairs in UpdatePlayerStats
+const (
+	UpdateSkin  = 0x00000001
+	UpdateFace  = 0x00000002
+	UpdateHair  = 0x00000004
+	UpdateLevel = 0x00000010
+	UpdateJob   = 0x00000020
+	UpdateStr   = 0x00000040
+	UpdateDex   = 0x00000080
+	UpdateInt   = 0x00000100
+	UpdateLuk   = 0x00000200
+	UpdateHp    = 0x00000400
+	UpdateMaxHp = 0x00000800
+	UpdateMp    = 0x00001000
+	UpdateMaxMp = 0x00002000
+	UpdateAp    = 0x00004000
+	UpdateSp    = 0x00008000
+	UpdateExp   = 0x00010000
+	UpdateFame  = 0x00020000
+	UpdateMeso  = 0x00040000
+	UpdatePet   = 0x00180008
+)
+
+type statSorter []utils.Pair
+
+func (this statSorter) Len() int      { return len(this) }
+func (this statSorter) Swap(i, j int) { this[i], this[j] = this[j], this[i] }
+func (this statSorter) Less(i, j int) bool {
+	return this[i].Second.(int32) < this[j].Second.(int32)
+}
+
+// UpdatePlayerStats returns a packet that updates the local player's stats.
+// The stats array must contain a pair for each stat that must be update. The first
+// element of each pair must contain one of the possible stat constants and the second
+// one must contain the new value for that stat in the correct type.
+// An empty stat array (or nil) will simply enable actions.
+//
+// Stat types:
+// UpdateSkin: int16
+// UpdateFace, UpdateHair: int32
+// UpdateLevel: byte
+// UpdateJob, UpdateStr, UpdateDex, UpdateInt, UpdateLuk, UpdateHp, UpdateMaxHp, UpdateMp,
+// 	UpdateMaxMp, UpdateAp, UpdateSp, UpdateExp, UpdateFame, UpdateMeso: int16
+// UpdatePet: int32
+func UpdatePlayerStats(stats []utils.Pair, itemReaction bool) (p maplelib.Packet) {
+	p = NewEncryptedPacket(OUpdateStats)
+
+	if itemReaction {
+		p.Encode1(0x01)
+	} else {
+		p.Encode1(0x00)
+	}
+
+	updateMask := 0
+	for _, pair := range stats {
+		updateMask |= pair.First.(int)
+	}
+
+	p.Encode4(uint32(updateMask))
+
+	if len(stats) > 1 {
+		sort.Sort(statSorter(stats))
+	}
+
+	for _, pair := range stats {
+		first := pair.First.(int)
+		switch {
+		case first == UpdateSkin:
+			p.Encode2s(pair.Second.(int16))
+		case first <= UpdateHair:
+			p.Encode4s(pair.Second.(int32))
+		case first < UpdateJob:
+			p.Encode1(pair.Second.(byte))
+		case first < 0xFFFF:
+			p.Encode2s(pair.Second.(int16))
+		default:
+			p.Encode4s(pair.Second.(int32))
+		}
+	}
+
+	return
+}
+
+// EnableActions returns an empty stat update packet
+func EnableActions() (p maplelib.Packet) {
+	return UpdatePlayerStats(nil, true)
+}
+
+// WarpToMap returns a packet that warps the client to a map
+func WarpToMap(mapid int32, portalid int32, hp int16, channel int8) (p maplelib.Packet) {
+	p = NewEncryptedPacket(OWarpToMap)
+	p.Encode4s(int32(channel))
+	p.Encode2(0x0002)
+	p.Encode2(0x0000)
+	p.Encode4s(mapid)
+	p.Encode1s(int8(portalid))
+	p.Encode2s(hp)
+	p.Encode1(0x00)
+	p.Encode8(0x1FFFFFFFFFFFFFFF)
 	return
 }

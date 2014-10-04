@@ -26,7 +26,7 @@ import (
 )
 
 import (
-	"github.com/Francesco149/kagami/common"
+	"github.com/Francesco149/kagami/common/utils"
 	"github.com/Francesco149/maplelib/wz"
 )
 
@@ -223,7 +223,7 @@ func getMonster(id int32) *MapleMonster {
 	undead := wz.GetIntConvertD(monsterInfoData.ChildByPath("undead"), 0)
 
 	// check all pointers
-	if common.AnyNil(php, plevel) {
+	if utils.AnyNil(php, plevel) {
 		return nil
 	}
 

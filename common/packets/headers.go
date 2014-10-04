@@ -38,7 +38,7 @@ const (
 	OPinAssigned        = 0x0007
 
 	// channel server
-	OConnectData   = 0x005C // warp to map
+	OWarpToMap     = 0x005C // warp to map
 	OServerMessage = 0x0041
 	OChangeChannel = 0x0010
 	OUpdateStats   = 0x001C
@@ -74,5 +74,6 @@ const (
 	ILoadCharacter    = 0x0014
 	IPlayerUpdate     = 0x00C0
 	IChangeMapSpecial = 0x005C
-	IMovePplayer      = 0x0026
+	IChangeMap        = 0x0023
+	IMovePlayer       = 0x0026
 )

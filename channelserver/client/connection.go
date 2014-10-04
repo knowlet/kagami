@@ -24,7 +24,10 @@ import (
 )
 
 import (
+	"github.com/Francesco149/kagami/channelserver/gamedata"
+	"github.com/Francesco149/kagami/channelserver/status"
 	"github.com/Francesco149/kagami/common"
+	"github.com/Francesco149/kagami/common/packets"
 	"github.com/Francesco149/maplelib"
 )
 
@@ -53,6 +56,7 @@ type Connection struct {
 	gmLevel                     int32  // gm level
 	uptime                      int64  // total online time in seconds
 	buddylistSize               byte
+	curmap                      *gamedata.MapleMap
 }
 
 // NewConnection initializes and returns an encrypted connection to a MapleStory client
@@ -127,7 +131,73 @@ func (c *Connection) SetHair(hair int32)                  { c.hair = hair }
 func (c *Connection) Skin() int8                          { return c.skin }
 func (c *Connection) SetSkin(skin int8)                   { c.skin = skin }
 func (c *Connection) MapId() int32                        { return c.mapid }
-func (c *Connection) SetMapId(mapid int32)                { c.mapid = mapid }
+
+func (c *Connection) SetMapId(mapid int32) error {
+	c.mapid = mapid
+	fmt.Println("loading map", c.mapid)
+	c.curmap = status.MapFactory().Get(mapid, true, true, true)
+	if c.curmap == nil {
+		return errors.New("failed to load map")
+	}
+	fmt.Println("done")
+	return nil
+}
+
+// Enter warps the client through this portal if possible
+func (this *Connection) Enter(p gamedata.IMapleGenericPortal) (err error) {
+	// TODO: check distance from portal and D/C if hacking
+
+	changedMap := false
+	if len(p.ScriptName()) > 0 {
+		// TODO: handle 4th job portal script
+		return
+	}
+
+	if p.TargetMapId() != 999999999 {
+		oldmap := this.MapId()
+		err = this.SetMapId(p.TargetMapId())
+		if err != nil {
+			this.SetMapId(oldmap)
+			// TODO: send some error
+			return this.SendPacket(packets.EnableActions())
+		}
+
+		newportal := this.Map().Portal(p.Target())
+		if newportal == nil {
+			newportal = this.Map().PortalById(0)
+		}
+
+		err = this.WarpToMap(this.Map(), newportal)
+		changedMap = true
+	}
+
+	if !changedMap {
+		err = this.SendPacket(packets.EnableActions())
+	}
+
+	return
+}
+
+// WarpToMap sends a map warp packet for the given map and portal.
+// NOTE: this must be called after calling SetMapId
+func (c *Connection) WarpToMap(newmap *gamedata.MapleMap,
+	newportal gamedata.MaplePortal) error {
+
+	pid := newportal.Id()
+
+	switch newmap.Id() {
+	case 100000200, 211000100, 220000300: // dunno why you have to change portal id here
+		pid -= 2
+	}
+
+	status.Lock()
+	defer status.Unlock()
+	return c.SendPacket(packets.WarpToMap(newmap.Id(), pid, 50, status.ChanId())) // todo: real hp
+
+	// TODO: update party, player pool and everything
+}
+
+func (c *Connection) Map() *gamedata.MapleMap             { return c.curmap }
 func (c *Connection) LastMap() int32                      { return c.lastmap }
 func (c *Connection) SetLastMap(lastmap int32)            { c.lastmap = lastmap }
 func (c *Connection) GmLevel() int32                      { return c.gmLevel }

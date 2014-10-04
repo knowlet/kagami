@@ -25,11 +25,13 @@ import (
 
 import (
 	"github.com/Francesco149/kagami/channelserver/client"
+	"github.com/Francesco149/kagami/channelserver/gamedata"
 	"github.com/Francesco149/kagami/channelserver/players"
 	"github.com/Francesco149/kagami/channelserver/status"
 	"github.com/Francesco149/kagami/common"
 	"github.com/Francesco149/kagami/common/interserver"
 	"github.com/Francesco149/kagami/common/packets"
+	"github.com/Francesco149/kagami/common/utils"
 	"github.com/Francesco149/maplelib"
 )
 
@@ -60,6 +62,9 @@ func Handle(con *client.Connection, p maplelib.Packet) (handled bool, err error)
 
 	case packets.IChangeMapSpecial:
 		return handleChangeMapSpecial(con, it)
+
+	case packets.IChangeMap:
+		return handleChangeMap(con, it)
 	}
 
 	return false, nil // forward packet to next handler
@@ -68,7 +73,7 @@ func Handle(con *client.Connection, p maplelib.Packet) (handled bool, err error)
 // connectData returns a packet that sends the initial character data when
 // a player connects to the channelserver
 func connectData(con *client.Connection) (p maplelib.Packet) {
-	p = packets.NewEncryptedPacket(packets.OConnectData)
+	p = packets.NewEncryptedPacket(packets.OWarpToMap)
 	// TODO: add all missing data
 	p.Encode4s(int32(status.ChanId()))
 	p.Encode1(0x01)          // what the hell is this
@@ -133,7 +138,7 @@ func handleLoadCharacter(con *client.Connection, it maplelib.PacketIterator) (ha
 		return
 	}
 
-	charip := common.RemoteAddrToBytes(con.Conn().RemoteAddr().String())
+	charip := utils.RemoteAddrToBytes(con.Conn().RemoteAddr().String())
 
 	// look for the character in the pending connections list then check the ip
 	// if the ips don't match, then someone is trying to remote hack
@@ -148,8 +153,9 @@ func handleLoadCharacter(con *client.Connection, it maplelib.PacketIterator) (ha
 		players.Unlock()
 		if expectedip != nil {
 			if !bytes.Equal(charip, expectedip) {
-				err = errors.New(fmt.Sprint(common.BytesToIpString(charip), "tried to remote hack",
-					common.BytesToIpString(expectedip)))
+				err = errors.New(fmt.Sprint(utils.BytesToIpString(charip),
+					"tried to remote hack",
+					utils.BytesToIpString(expectedip)))
 			}
 			break
 		}
@@ -294,15 +300,57 @@ func handleChangeMapSpecial(con *client.Connection, it maplelib.PacketIterator) 
 	}
 
 	fmt.Println(con.Name(), "entered", portalname, "in map", con.MapId())
-	// TODO:
+	portal := con.Map().Portal(portalname)
+	if portal == nil {
+		fmt.Println("Enabled actions for", con.Name())
+		err = con.SendPacket(packets.EnableActions())
+	} else {
+		fmt.Println("Sending portal enter packet")
+		err = con.Enter(portal.(gamedata.IMapleGenericPortal))
+	}
 
-	/*
-		if portal == nil {
-			err = con.SendPacket(packets.EnableActions())
+	handled = err == nil
+	return
+}
+
+func handleChangeMap(con *client.Connection, it maplelib.PacketIterator) (handled bool, err error) {
+	reason, err := it.Decode1()
+	target, err := it.Decode4s()
+	portalname, err := it.DecodeString()
+	portal := con.Map().Portal(portalname)
+
+	if reason == 1 {
+		fmt.Println(con.Name(), "died")
+	} else {
+		fmt.Println(con.Name(), "is entering portal", portalname)
+	}
+
+	switch {
+	case target != -1 /*&& !con.Alive()*/ :
+		fmt.Println("TODO: revive player")
+
+	case target != -1 && con.GmLevel() > 2:
+		// TODO: check chalkboard
+		oldmap := con.MapId()
+		err = con.SetMapId(target)
+		if err != nil {
+			con.SetMapId(oldmap)
+			err = nil
 		} else {
-			err = con.SendPacket(packets.EnterPortal(portal))
+			portal = con.Map().PortalById(0)
+			con.WarpToMap(con.Map(), portal)
 		}
-	*/
+
+	case target != -1 && con.GmLevel() <= 2:
+		fmt.Println(con.Name(), "tried to map warp without gm powers.")
+
+	default:
+		if portal != nil {
+			err = con.Enter(portal.(gamedata.IMapleGenericPortal))
+		} else {
+			err = con.SendPacket(packets.EnableActions())
+		}
+	}
 
 	handled = err == nil
 	return

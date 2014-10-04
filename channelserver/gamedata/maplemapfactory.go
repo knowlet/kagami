@@ -27,7 +27,7 @@ import (
 )
 
 import (
-	"github.com/Francesco149/kagami/common"
+	"github.com/Francesco149/kagami/common/utils"
 	"github.com/Francesco149/maplelib/wz"
 )
 
@@ -166,7 +166,7 @@ func (f *MapleMapFactory) Get(mapid int32, respawns, npcs, reactors bool) *Maple
 				pprev := wz.GetInt(footHold.ChildByPath("prev"))
 				pnext := wz.GetInt(footHold.ChildByPath("next"))
 
-				if common.AnyNil(px1, py1, px2, py2, pprev, pnext) {
+				if utils.AnyNil(px1, py1, px2, py2, pprev, pnext) {
 					DebugPrintln("x1, y1, x2, y2, prev or next are nil")
 					DebugPrintln("values: ", px1, py1, px2, py2, pprev, pnext)
 					return nil
@@ -230,7 +230,7 @@ func (f *MapleMapFactory) Get(mapid int32, respawns, npcs, reactors bool) *Maple
 			px2 := wz.GetInt(area.ChildByPath("x2"))
 			py2 := wz.GetInt(area.ChildByPath("y2"))
 
-			if common.AnyNil(px1, py1, px2, py2) {
+			if utils.AnyNil(px1, py1, px2, py2) {
 				DebugPrintln("x1, y1, x2 or y2 are nil")
 				DebugPrintln("values: ", px1, py1, px2, py2)
 				return nil
@@ -255,7 +255,7 @@ func (f *MapleMapFactory) Get(mapid int32, respawns, npcs, reactors bool) *Maple
 		pid := wz.GetIntConvert(life.ChildByPath("id"))
 		plifetype := wz.GetString(life.ChildByPath("type"))
 
-		if common.AnyNil(pid, plifetype) {
+		if utils.AnyNil(pid, plifetype) {
 			DebugPrintln("pid or plifetype are nil")
 			DebugPrintln("values: ", pid, plifetype)
 			return nil
@@ -398,7 +398,7 @@ func loadLife(life wz.MapleData, id int32, lifetype string) IAbstractLoadedMaple
 	prx1 := wz.GetInt(life.ChildByPath("rx1"))
 	px := wz.GetInt(life.ChildByPath("x"))
 	py := wz.GetInt(life.ChildByPath("y"))
-	if common.AnyNil(pfh, prx0, prx1, px, py) {
+	if utils.AnyNil(pfh, prx0, prx1, px, py) {
 		return nil
 	}
 
@@ -419,7 +419,7 @@ func loadReactor(reactor wz.MapleData, id int32) *MapleReactor {
 	py := wz.GetInt(reactor.ChildByPath("y"))
 	pdelay := wz.GetInt(reactor.ChildByPath("reactorTime"))
 	pname := wz.GetString(reactor.ChildByPath("name"))
-	if common.AnyNil(px, py, pdelay, pname) {
+	if utils.AnyNil(px, py, pdelay, pname) {
 		return nil
 	}
 

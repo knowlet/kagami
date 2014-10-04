@@ -21,9 +21,9 @@ import (
 )
 
 import (
-	"github.com/Francesco149/kagami/common"
 	"github.com/Francesco149/kagami/common/interserver"
 	"github.com/Francesco149/kagami/common/packets"
+	"github.com/Francesco149/kagami/common/utils"
 	"github.com/Francesco149/kagami/worldserver/channels"
 	"github.com/Francesco149/kagami/worldserver/status"
 	"github.com/Francesco149/maplelib"
@@ -83,7 +83,7 @@ func HandleChan(con *channels.Connection, p maplelib.Packet) (handled bool, err 
 			chanport := makeChannelPort(available)
 
 			// TODO: get external ip
-			ipbytes := common.RemoteAddrToBytes(con.Conn().RemoteAddr().String())
+			ipbytes := utils.RemoteAddrToBytes(con.Conn().RemoteAddr().String())
 
 			channels.Add(con, available, ipbytes, chanport)
 			con.SendPacket(channelConnect(available, chanport))

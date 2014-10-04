@@ -108,6 +108,20 @@ func (this *MapleMap) AddPortal(p MaplePortal) {
 	this.portals[p.Id()] = p
 }
 
+func (this *MapleMap) Portal(name string) MaplePortal {
+	for _, port := range this.portals {
+		if port.Name() == name {
+			return port
+		}
+	}
+
+	return nil
+}
+
+func (this *MapleMap) PortalById(id int32) MaplePortal {
+	return this.portals[id]
+}
+
 func (this *MapleMap) SetFootholds(f *MapleFootholdTree) {
 	this.footholds = f
 }
@@ -133,6 +147,10 @@ func (this *MapleMap) SetMapName(v string) {
 
 func (this *MapleMap) SetStreetName(v string) {
 	this.streetName = v
+}
+
+func (this *MapleMap) Id() int32 {
+	return this.mapid
 }
 
 func (this *MapleMap) MapName() string {

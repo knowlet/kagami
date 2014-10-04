@@ -13,9 +13,9 @@ Feature progress
 * Character selection / creation / deletion and multiple worlds/channels - [done (video)](http://www.hnng.moe/f/7m)
 * Handling Bans - [done](http://www.hnng.moe/f/5Q)
 * Getting in game - [done](http://hnng.moe/f/Ai)
+* Basic in-game sync - WIP ([video of portals working](http://hnng.moe/f/CK))
 * Properly syncing data between login/world/chan - WIP
 * Graceful server shutdown that logs all players off - WIP
-* Basic in-game sync - WIP
 
 Getting started
 ============

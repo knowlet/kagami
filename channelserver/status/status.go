@@ -27,7 +27,7 @@ import (
 )
 
 var mut sync.Mutex
-var worldId int8 = -1
+var worldId int8 = -1 // TODO: use atomic integers on these instead of the mutex
 var chanId int8 = -1
 var port int16 = 0
 var worldConf *config.WorldConf = nil

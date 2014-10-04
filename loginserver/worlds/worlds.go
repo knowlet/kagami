@@ -24,9 +24,9 @@ import (
 )
 
 import (
-	"github.com/Francesco149/kagami/common"
 	"github.com/Francesco149/kagami/common/interserver"
 	"github.com/Francesco149/kagami/common/packets"
+	"github.com/Francesco149/kagami/common/utils"
 	"github.com/Francesco149/kagami/loginserver/client"
 	"github.com/Francesco149/maplelib"
 )
@@ -125,7 +125,7 @@ func AddChannelServer(con *Connection) error {
 	targetworldid = targetworld.Id()
 	// TODO: resolve this to the external ip address to actually make it work online
 	// FIXME
-	worldIp = common.RemoteAddrToBytes(con.Conn().RemoteAddr().String())
+	worldIp = utils.RemoteAddrToBytes(con.Conn().RemoteAddr().String())
 	if len(worldIp) != 4 {
 		return errors.New("Ipv6 not supported")
 	}
