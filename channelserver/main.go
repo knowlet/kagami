@@ -92,6 +92,8 @@ func main() {
 	signal.Notify(sigint, syscall.SIGTERM)
 	signal.Notify(sigint, syscall.SIGKILL)
 	signal.Notify(sigint, syscall.SIGHUP)
+	signal.Notify(sigint, syscall.SIGTRAP)
+	signal.Notify(sigint, syscall.SIGQUIT)
 	go func() {
 		sig := <-sigint
 		fmt.Println("Captured signal", sig)
