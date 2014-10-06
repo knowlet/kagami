@@ -294,7 +294,7 @@ func (c *Connection) SaveStats() (err error) {
 			"job = ?, " +
 			"str = ?, " +
 			"dex = ?, " +
-			"int = ?, " +
+			"`int` = ?, " +
 			"luk = ?, " +
 			"chp = ?, " +
 			"mhp = ?, " +

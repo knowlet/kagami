@@ -62,7 +62,7 @@ func HandleLoop(name string, basecon net.Conn, handler PacketHandler,
 		}
 
 		if !handled {
-			fmt.Println(utils.MakeWarning(fmt.Sprint("Unhandled ", name, " packet ", inpacket)))
+			fmt.Println(utils.MakeWarning("Unhandled ", name, " packet ", inpacket))
 			//break
 		}
 	}

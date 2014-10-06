@@ -123,22 +123,74 @@ func BytesToIpString(ip []byte) string {
 	return fmt.Sprintf("%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3])
 }
 
-// MakeWarning formats a warning message
-func MakeWarning(msg string) string {
+// FillLine adds padchar to the left and right of str until it completely fills
+// a line in the terminal.
+func FillLine(str string, padchar rune) string {
+	w := GetConsoleWidth()
+	paddinglen := (w - len(str)) / 2
+	padding := ""
+
+	for i := 0; i < paddinglen; i++ {
+		padding += string(padchar)
+	}
+
+	res := padding + str + padding
+	for len(res) < w { // just in case the terminal width is odd
+		res += string(padchar)
+	}
+
+	return res
+}
+
+// MakeBlockMessage formats a message inside an ascii art box with the given header
+func MakeBlockMessage(header string, a ...interface{}) string {
+	msg := fmt.Sprint(a...)
 	return fmt.Sprint("\n",
-		"******* /!\\ WARNING /!\\ *******\n",
+		FillLine(" "+header+" ", '*'),
 		msg, "\n",
-		"*******************************\n",
+		FillLine("", '*'),
 		"\n")
 }
 
-// MakeError formats an error message
-func MakeError(msg string) string {
+// MakeBlockMessage formats a message inside an ascii art box with the given header
+// using the Sprintf format.
+func MakeBlockMessagef(header, format string, a ...interface{}) string {
+	msg := fmt.Sprintf(format, a...)
 	return fmt.Sprint("\n",
-		"******** /!\\ ERROR /!\\ ********\n",
+		FillLine(" "+header+" ", '*'),
 		msg, "\n",
-		"*******************************\n",
+		FillLine("", '*'),
 		"\n")
+}
+
+// MakeWarning formats a warning message.
+func MakeWarning(a ...interface{}) string {
+	return MakeBlockMessage("/!\\ WARNING /!\\", a...)
+}
+
+// MakeError formats an error message.
+func MakeError(a ...interface{}) string {
+	return MakeBlockMessage("/!\\ ERROR /!\\", a...)
+}
+
+// MakeNote formats an note message.
+func MakeNote(a ...interface{}) string {
+	return MakeBlockMessage("/!\\ NOTE /!\\", a...)
+}
+
+// MakeWarningf formats a warning message using the Sprintf format.
+func MakeWarningf(format string, a ...interface{}) string {
+	return MakeBlockMessagef("/!\\ WARNING /!\\", format, a...)
+}
+
+// MakeErrorf formats an error message using the Sprintf format.
+func MakeErrorf(format string, a ...interface{}) string {
+	return MakeBlockMessagef("/!\\ ERROR /!\\", format, a...)
+}
+
+// MakeNotef formats an note message using the Sprintf format.
+func MakeNotef(format string, a ...interface{}) string {
+	return MakeBlockMessagef("/!\\ NOTE /!\\", format, a...)
 }
 
 // AnyNil returns true if any of the given values is nil

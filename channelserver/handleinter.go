@@ -164,14 +164,14 @@ func handleChannelConnect(con *common.InterserverClient, it maplelib.PacketItera
 			st.WorldConn().SendPacket(interserver.SyncPlayerLeftChannel(st.ChanId()))
 			err = scon.SetDBOnline(false)
 			if err != nil {
-				fmt.Println(utils.MakeError(
-					fmt.Sprint("Failed to disconnect ", scon.Stats().Name(), ": ", err)))
+				fmt.Println(utils.MakeError("Failed to disconnect ",
+					scon.Stats().Name(), ": ", err))
 			}
 
 			err = scon.Save()
 			if err != nil {
-				fmt.Println(utils.MakeError(
-					fmt.Sprint("Failed to save ", scon.Stats().Name(), ": ", err)))
+				fmt.Println(utils.MakeError("Failed to save ",
+					scon.Stats().Name(), ": ", err))
 			}
 
 			players.Lock()

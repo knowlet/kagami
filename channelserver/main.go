@@ -34,6 +34,7 @@ import (
 	"github.com/Francesco149/kagami/common"
 	"github.com/Francesco149/kagami/common/consts"
 	"github.com/Francesco149/kagami/common/interserver"
+	"github.com/Francesco149/kagami/common/utils"
 	"github.com/Francesco149/maplelib"
 	"github.com/Francesco149/maplelib/wz"
 )
@@ -49,6 +50,9 @@ func main() {
 
 	fmt.Println("Kagami Pre-Alpha")
 	fmt.Println("Initializing ChannelServer...")
+	fmt.Println(utils.MakeNote("To terminate this process, press CTRL + C. ",
+		"Closing the terminal window will prevent the server from ",
+		"gracefully saving the current state."))
 
 	fmt.Println("Loading Map.wz and String.wz")
 	mapProvider, err := wz.NewMapleDataProvider("wz/Map.wz")
@@ -67,7 +71,7 @@ func main() {
 
 	// disconnect all players if the server panics or is closed non-gracefully
 	fnCleanup := func() {
-		fmt.Println("Attempting emergency cleanup...")
+		fmt.Println("Attempting cleanup...")
 		err := players.Execute(func(con *client.Connection) error {
 			return con.SetDBOnline(false)
 		})
@@ -76,6 +80,7 @@ func main() {
 		} else {
 			fmt.Println("Success!")
 		}
+		time.Sleep(1 * time.Second)
 	}
 
 	// handle panic
@@ -96,9 +101,8 @@ func main() {
 	signal.Notify(sigint, syscall.SIGQUIT)
 	go func() {
 		sig := <-sigint
-		fmt.Println("Captured signal", sig)
+		fmt.Println("Caught signal", sig)
 		fnCleanup()
-		time.Sleep(1 * time.Second)
 		os.Exit(1)
 	}()
 
