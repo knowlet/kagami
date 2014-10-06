@@ -194,7 +194,10 @@ func handleLoadCharacter(con *client.Connection, it maplelib.PacketIterator) (ha
 	// TODO: check for pending buddylist requests
 	// TODO: send skill macros
 
-	// TODO: add player to player list
+	players.Lock()
+	players.Add(con)
+	players.Unlock()
+
 	// TODO: add player to map's player list
 
 	fmt.Println(con.Conn().RemoteAddr().String(), "connected as", con.Stats().Name())

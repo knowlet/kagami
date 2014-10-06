@@ -17,9 +17,14 @@
 package players
 
 import "sync"
+import "github.com/Francesco149/kagami/channelserver/client"
+
+type ClientOperationCallback func(*client.Connection) error
 
 var mut sync.Mutex
 var pendingIps = make(map[int32][]byte) // pending connections mapped by charid
+var characters = make(map[int32]*client.Connection)
+
 // TODO: add a timeout on pendingIps entries so that they don't clog up the memory
 // when players fail to connect to the channelserver for whatever reason
 
@@ -45,4 +50,24 @@ func AddPendingIp(charid int32, ip []byte) {
 
 func RemovePendingIp(charid int32) {
 	delete(pendingIps, charid)
+}
+
+func Add(con *client.Connection) {
+	characters[con.Stats().Id()] = con
+}
+
+func Remove(con *client.Connection) {
+	delete(characters, con.Stats().Id())
+}
+
+// Execute calls the given callback on all clients in the player pool.
+// See ClientOperationCallback for the callback signature.
+func Execute(fn ClientOperationCallback) (err error) {
+	for _, client := range characters {
+		err = fn(client)
+		if err != nil {
+			return
+		}
+	}
+	return
 }

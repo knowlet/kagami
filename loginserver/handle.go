@@ -289,6 +289,13 @@ func handleLoginPassword(con *client.Connection, it maplelib.PacketIterator) (ha
 		return
 	}
 
+	st, err = db.Prepare("UPDATE accounts SET last_login = NOW() WHERE id = ?")
+	_, err = st.Run(userid)
+	if err != nil {
+		handled = false
+		return
+	}
+
 	con.SetPlayerStatus(client.LoggedIn)
 	con.SetId(userid)
 

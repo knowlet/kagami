@@ -26,6 +26,12 @@ import (
 
 import "github.com/Francesco149/kagami/common/consts"
 
+// A Pair holds two values of any type that can be
+// casted back to their original type through type assertions
+type Pair struct {
+	First, Second interface{}
+}
+
 // HashPassword returns a salted sha-512 hash of the given password
 func HashPassword(password, salt string) string {
 	hasher := sha512.New()
@@ -144,12 +150,6 @@ func AnyNil(a ...interface{}) bool {
 	}
 
 	return false
-}
-
-// A Pair holds two values of any type that can be
-// casted back to their original type through type assertions
-type Pair struct {
-	First, Second interface{}
 }
 
 // Indent adds n \t 's at the beginning of each line of the given string

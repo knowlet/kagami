@@ -287,8 +287,58 @@ func (c *Connection) EncodeQuestInfo(p *maplelib.Packet) {
 
 // SaveStats saves all of the player's stats to the database
 func (c *Connection) SaveStats() (err error) {
-	// TODO
-	return nil
+	db := common.GetDB()
+	st, err := db.Prepare(
+		"UPDATE characters SET " +
+			"level = ?, " +
+			"job = ?, " +
+			"str = ?, " +
+			"dex = ?, " +
+			"int = ?, " +
+			"luk = ?, " +
+			"chp = ?, " +
+			"mhp = ?, " +
+			"cmp = ?, " +
+			"mmp = ?, " +
+			"ap = ?, " +
+			"sp = ?, " +
+			"exp = ?, " +
+			"fame = ?, " +
+			"map = ?, " +
+			"pos = ?, " +
+			"gender = ?, " +
+			"skin = ?, " +
+			"face = ?, " +
+			"hair = ? " +
+			"WHERE character_id = ?")
+	if err != nil {
+		return
+	}
+
+	_, err = st.Run(
+		c.Stats().Level(),
+		c.Stats().Job(),
+		c.Stats().Str(),
+		c.Stats().Dex(),
+		c.Stats().Int(),
+		c.Stats().Luk(),
+		c.Stats().Hp(),
+		c.Stats().MaxHp(),
+		c.Stats().Mp(),
+		c.Stats().MaxMp(),
+		c.Stats().Ap(),
+		c.Stats().Sp(),
+		c.Stats().Exp(),
+		c.Stats().Fame(),
+		c.Stats().MapId(),
+		c.Stats().Pos(),
+		c.Stats().Gender(),
+		c.Stats().Skin(),
+		c.Stats().Face(),
+		c.Stats().Hair(),
+		c.Stats().Id(),
+	)
+	return
 }
 
 // Saves saves all of the player's information to the database

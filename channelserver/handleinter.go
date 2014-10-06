@@ -173,6 +173,10 @@ func handleChannelConnect(con *common.InterserverClient, it maplelib.PacketItera
 				fmt.Println(utils.MakeError(
 					fmt.Sprint("Failed to save ", scon.Stats().Name(), ": ", err)))
 			}
+
+			players.Lock()
+			players.Remove(scon)
+			players.Unlock()
 		})
 
 	fmt.Println("Channel server is running!")

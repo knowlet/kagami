@@ -20,11 +20,16 @@ import (
 	"fmt"
 	"math/rand"
 	"net"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
 import (
+	"github.com/Francesco149/kagami/channelserver/client"
 	"github.com/Francesco149/kagami/channelserver/gamedata"
+	"github.com/Francesco149/kagami/channelserver/players"
 	"github.com/Francesco149/kagami/channelserver/status"
 	"github.com/Francesco149/kagami/common"
 	"github.com/Francesco149/kagami/common/consts"
@@ -59,6 +64,41 @@ func main() {
 	st.SetStringsProvider(stringProvider)
 	st.SetMapFactory(factory)
 	status.Get <- st
+
+	// disconnect all players if the server panics or is closed non-gracefully
+	fnCleanup := func() {
+		fmt.Println("Attempting emergency cleanup...")
+		err := players.Execute(func(con *client.Connection) error {
+			return con.SetDBOnline(false)
+		})
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			fmt.Println("Success!")
+		}
+	}
+
+	// handle panic
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println(r, "\n\nRecovered from panic")
+			fnCleanup()
+		}
+	}()
+
+	// handle SIGINT
+	sigint := make(chan os.Signal, 1)
+	signal.Notify(sigint, syscall.SIGINT)
+	signal.Notify(sigint, syscall.SIGTERM)
+	signal.Notify(sigint, syscall.SIGKILL)
+	signal.Notify(sigint, syscall.SIGHUP)
+	go func() {
+		sig := <-sigint
+		fmt.Println("Captured signal", sig)
+		fnCleanup()
+		time.Sleep(1 * time.Second)
+		os.Exit(1)
+	}()
 
 	// connect to loginserver
 	fmt.Println("Waiting for the loginserver to assign a worldserver...")
