@@ -63,6 +63,59 @@ type MapleMap struct {
 	mut         sync.Mutex
 }
 
+func (this *MapleMap) String() string {
+	this.mut.Lock()
+	defer this.mut.Unlock()
+
+	return fmt.Sprintf(
+		`{
+	%v / %v
+	%v objects 
+	%v monsterSpawns 
+	%v spawnedMonsters 
+	%v portals 
+	%v areas 
+	%v footholds
+	mapid: %v
+	runningOid: %v
+	returnMapId: %v
+	monsterRate: %v
+	dropsDisabled: %v
+	clock: %v
+	boat: %v
+	docked: %v
+	everlast: %v
+	forcedReturnMap: %v
+	timeLimit: %v
+	dropLife: %v
+	decHP: %v
+	protectItem: %v
+	town: %v
+}`,
+		this.mapName, this.streetName,
+		len(this.objects),
+		len(this.monsterSpawns),
+		atomic.LoadInt64(&this.spawnedMonsters),
+		len(this.portals),
+		len(this.areas),
+		this.footholds.Size(),
+		this.mapid,
+		this.runningOid,
+		this.returnMapId,
+		this.monsterRate,
+		this.dropsDisabled,
+		this.clock,
+		this.boat,
+		this.docked,
+		this.everlast,
+		this.forcedReturnMap,
+		this.timeLimit,
+		this.dropLife,
+		this.decHP,
+		this.protectItem,
+		this.town)
+}
+
 // NewMapleMap initializes a new map
 func NewMapleMap(mmapid, mreturnMapId int32, mmonsterRate float32) *MapleMap {
 	res := &MapleMap{

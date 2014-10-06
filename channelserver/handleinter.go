@@ -165,13 +165,13 @@ func handleChannelConnect(con *common.InterserverClient, it maplelib.PacketItera
 			err = scon.SetDBOnline(false)
 			if err != nil {
 				fmt.Println(utils.MakeError(
-					fmt.Sprint("Failed to disconnect ", scon.Name(), ": ", err)))
+					fmt.Sprint("Failed to disconnect ", scon.Stats().Name(), ": ", err)))
 			}
 
 			err = scon.Save()
 			if err != nil {
 				fmt.Println(utils.MakeError(
-					fmt.Sprint("Failed to save ", scon.Name(), ": ", err)))
+					fmt.Sprint("Failed to save ", scon.Stats().Name(), ": ", err)))
 			}
 		})
 

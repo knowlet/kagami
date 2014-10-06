@@ -28,6 +28,7 @@ import (
 	"github.com/Francesco149/kagami/channelserver/status"
 	"github.com/Francesco149/kagami/common"
 	"github.com/Francesco149/kagami/common/packets"
+	"github.com/Francesco149/kagami/common/utils"
 	"github.com/Francesco149/maplelib"
 )
 
@@ -37,77 +38,78 @@ import (
 // It's a wrapper around EncryptedConnection specialized for in-game MapleStory clients.
 // It caches various data from the database such as gm level, look and so on.
 type Connection struct {
-	*common.EncryptedConnection        // underlying encrypted connection
-	connected                   bool   // true if the player has successfully connected
-	name                        string // character name
-	admin                       bool   // true if the user is an admin
-	gmchat                      bool   // true if the user's gm chat is enabled
-	disconnecting               bool   // true if the user is disconnecting
-	worldid                     int8   // numeric world id
-	mapPos                      int8   // portal id at which the player will spawn
-	gender                      byte   // the character's gender
-	charid                      int32  // character id
-	userid                      int32  // account id
-	face                        int32  // face id
-	hair                        int32  // hair id
-	skin                        int8   // skin id
-	mapid                       int32  // map id
-	lastmap                     int32  // last map id
-	gmLevel                     int32  // gm level
-	uptime                      int64  // total online time in seconds
+	*common.EncryptedConnection       // underlying encrypted connection
+	connected                   bool  // true if the player has successfully connected
+	admin                       bool  // true if the user is an admin
+	gmchat                      bool  // true if the user's gm chat is enabled
+	disconnecting               bool  // true if the user is disconnecting
+	worldid                     int8  // numeric world id
+	userid                      int32 // account id
+	lastmap                     int32 // last map id
+	gmLevel                     int32 // gm level
+	uptime                      int64 // total online time in seconds
 	buddylistSize               byte
 	curmap                      *gamedata.MapleMap
+	meso                        int32
+	stats                       *common.CharStats
 }
 
 // NewConnection initializes and returns an encrypted connection to a MapleStory client
 func NewConnection(basecon net.Conn, testserver bool) *Connection {
 	return &Connection{
 		EncryptedConnection: common.NewEncryptedConnection(basecon, testserver, false), // base class
+		connected:           false,
 		admin:               false,
 		gmchat:              false,
 		disconnecting:       false,
 		worldid:             -1,
-		mapPos:              -1,
-		gender:              0,
-		charid:              -1,
 		userid:              -1,
-		face:                -1,
-		hair:                -1,
-		mapid:               -1,
 		lastmap:             -1,
 		gmLevel:             0,
 		uptime:              0,
+		buddylistSize:       0,
+		curmap:              nil,
+		meso:                -1,
+		stats:               nil,
 	}
 }
 
 func (c *Connection) String() string {
-	return fmt.Sprintf(""+
-		"\n%v:{\n"+
-		"\tadmin: %v\n"+
-		"\tgmchat: %v\n"+
-		"\tdisconnecting: %v\n"+
-		"\tworldid: %v\n"+
-		"\tmapPos: %v\n"+
-		"\tgender: %v\n"+
-		"\tcharid: %v\n"+
-		"\tuserid: %v\n"+
-		"\tface: %v\n"+
-		"\thair: %v\n"+
-		"\tmapid: %v\n"+
-		"\tlastmap: %v\n"+
-		"\tgmLevel: %v\n"+
-		"\tuptime: %v\n"+
-		"}\n",
-		c.Conn().RemoteAddr(), c.Admin(), c.GmChat(),
-		c.Disconnecting(), c.WorldId(), c.MapPos(), c.Gender(),
-		c.CharId(), c.UserId(), c.Face(), c.Hair(), c.MapId(),
-		c.LastMap(), c.GmLevel(), c.Uptime())
+	return fmt.Sprintf(
+		`%v:{
+	connected: %v
+	admin: %v
+	gmchat: %v
+	disconnecting: %v
+	worldid: %v
+	userid: %v
+	lastmap: %v
+	gmLevel: %v
+	uptime: %v
+	buddylistSize: %v
+	map: %v
+	meso: %v
+	stats: %v
+}`,
+		c.Conn().RemoteAddr(),
+		c.Connected(),
+		c.Admin(),
+		c.GmChat(),
+		c.Disconnecting(),
+		c.WorldId(),
+		c.UserId(),
+		c.LastMap(),
+		c.GmLevel(),
+		c.Uptime(),
+		c.BuddylistSize(),
+		utils.Indent(c.Map().String(), 1),
+		c.Meso(),
+		utils.Indent(c.Stats().String(), 1),
+	)
 }
 
 func (c *Connection) Connected() bool                     { return c.connected }
 func (c *Connection) SetConnected(connected bool)         { c.connected = connected }
-func (c *Connection) Name() string                        { return c.name }
-func (c *Connection) SetName(name string)                 { c.name = name }
 func (c *Connection) Admin() bool                         { return c.admin }
 func (c *Connection) SetAdmin(admin bool)                 { c.admin = admin }
 func (c *Connection) GmChat() bool                        { return c.gmchat }
@@ -116,25 +118,29 @@ func (c *Connection) Disconnecting() bool                 { return c.disconnecti
 func (c *Connection) SetDisconnecting(disconnecting bool) { c.disconnecting = disconnecting }
 func (c *Connection) WorldId() int8                       { return c.worldid }
 func (c *Connection) SetWorldId(worldid int8)             { c.worldid = worldid }
-func (c *Connection) MapPos() int8                        { return c.mapPos }
-func (c *Connection) SetMapPos(mapPos int8)               { c.mapPos = mapPos }
-func (c *Connection) Gender() byte                        { return c.gender }
-func (c *Connection) SetGender(gender byte)               { c.gender = gender }
-func (c *Connection) CharId() int32                       { return c.charid }
-func (c *Connection) SetCharId(charid int32)              { c.charid = charid }
 func (c *Connection) UserId() int32                       { return c.userid }
 func (c *Connection) SetUserId(userid int32)              { c.userid = userid }
-func (c *Connection) Face() int32                         { return c.face }
-func (c *Connection) SetFace(face int32)                  { c.face = face }
-func (c *Connection) Hair() int32                         { return c.hair }
-func (c *Connection) SetHair(hair int32)                  { c.hair = hair }
-func (c *Connection) Skin() int8                          { return c.skin }
-func (c *Connection) SetSkin(skin int8)                   { c.skin = skin }
-func (c *Connection) MapId() int32                        { return c.mapid }
+func (c *Connection) Meso() int32                         { return c.meso }
+func (c *Connection) SetMeso(v int32)                     { c.meso = v }
+func (c *Connection) Stats() *common.CharStats            { return c.stats }
+func (c *Connection) Map() *gamedata.MapleMap             { return c.curmap }
+func (c *Connection) LastMap() int32                      { return c.lastmap }
+func (c *Connection) SetLastMap(lastmap int32)            { c.lastmap = lastmap }
+func (c *Connection) GmLevel() int32                      { return c.gmLevel }
+func (c *Connection) SetGmLevel(gmLevel int32)            { c.gmLevel = gmLevel }
+func (c *Connection) Uptime() int64                       { return c.uptime }
+func (c *Connection) SetUptime(uptime int64)              { c.uptime = uptime }
+func (c *Connection) BuddylistSize() byte                 { return c.buddylistSize }
+func (c *Connection) SetBuddylistSize(buddylistSize byte) { c.buddylistSize = buddylistSize }
+
+func (c *Connection) SetStats(v *common.CharStats) {
+	c.stats = v
+	c.SetMapId(v.MapId())
+}
 
 func (c *Connection) SetMapId(mapid int32) error {
-	c.mapid = mapid
-	fmt.Println("loading map", c.mapid)
+	c.Stats().SetMapId(mapid)
+	fmt.Println("loading map", c.Stats().MapId())
 
 	st := <-status.Get
 	defer func() { status.Get <- st }()
@@ -158,7 +164,7 @@ func (this *Connection) Enter(p gamedata.IMapleGenericPortal) (err error) {
 	}
 
 	if p.TargetMapId() != 999999999 {
-		oldmap := this.MapId()
+		oldmap := this.Stats().MapId()
 		err = this.SetMapId(p.TargetMapId())
 		if err != nil {
 			this.SetMapId(oldmap)
@@ -201,46 +207,12 @@ func (c *Connection) WarpToMap(newmap *gamedata.MapleMap,
 	// TODO: update party, player pool and everything
 }
 
-func (c *Connection) Map() *gamedata.MapleMap             { return c.curmap }
-func (c *Connection) LastMap() int32                      { return c.lastmap }
-func (c *Connection) SetLastMap(lastmap int32)            { c.lastmap = lastmap }
-func (c *Connection) GmLevel() int32                      { return c.gmLevel }
-func (c *Connection) SetGmLevel(gmLevel int32)            { c.gmLevel = gmLevel }
-func (c *Connection) Uptime() int64                       { return c.uptime }
-func (c *Connection) SetUptime(uptime int64)              { c.uptime = uptime }
-func (c *Connection) BuddylistSize() byte                 { return c.buddylistSize }
-func (c *Connection) SetBuddylistSize(buddylistSize byte) { c.buddylistSize = buddylistSize }
-
 // SetDBOnline updates the player's online status in the database
 func (c *Connection) SetDBOnline(online bool) (err error) {
 	db := common.GetDB()
 	st, err := db.Prepare("UPDATE `accounts` a INNER JOIN `characters` c ON a.id = c.user_id " +
 		"SET a.online = ?, c.online = ? WHERE c.character_id = ?")
-	_, err = st.Run(online, online, c.charid)
-	return
-}
-
-func (c *Connection) EncodeStats(p *maplelib.Packet) (err error) {
-	// TODO
-	db := common.GetDB()
-	st, err := db.Prepare("SELECT * FROM characters WHERE character_id = ?")
-	res, err := st.Run(c.CharId())
-	rows, err := res.GetRows()
-	if err != nil {
-		return
-	}
-
-	if len(rows) < 1 {
-		err = errors.New(fmt.Sprintf("Char id %d not found in database when encoding stats", c.CharId()))
-		return
-	}
-
-	thechar, err := common.GetCharDataFromDBRow(rows[0], res)
-	if err != nil {
-		return
-	}
-
-	thechar.EncodeStats(p)
+	_, err = st.Run(online, online, c.Stats().Id())
 	return
 }
 
@@ -258,7 +230,7 @@ func (c *Connection) SaveStats() (err error) {
 
 // Saves saves all of the player's information to the database
 func (c *Connection) Save() (err error) {
-	fmt.Println("Saving", c.Name(), "'s data")
+	fmt.Println("Saving", c.Stats().Name(), "'s data")
 	err = c.SaveStats()
 	// TODO: save inventory
 	// TODO: save storage

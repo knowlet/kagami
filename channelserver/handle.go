@@ -84,14 +84,10 @@ func connectData(con *client.Connection, chanid int8) (p maplelib.Packet) {
 	p.Append(whatthehellisthis) // what the hell is this
 	p.Encode8s(-1)              // what the hell is this
 
-	err := con.EncodeStats(&p)
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
+	con.Stats().Encode(&p)
 
-	p.Encode1(100)  // TODO: get real buddylist capacity
-	p.Encode4(1337) // TODO: get real meso
+	p.Encode1(100) // TODO: get real buddylist capacity
+	p.Encode4s(con.Meso())
 	// TODO: get real inv slots
 	p.Encode1(100) // equip slots
 	p.Encode1(100) // use slots
@@ -169,7 +165,6 @@ func handleLoadCharacter(con *client.Connection, it maplelib.PacketIterator) (ha
 	players.Lock()
 	players.RemovePendingIp(charid)
 	players.Unlock()
-	con.SetCharId(charid)
 
 	// get char data from db
 	db := common.GetDB()
@@ -178,11 +173,6 @@ func handleLoadCharacter(con *client.Connection, it maplelib.PacketIterator) (ha
 		"WHERE c.character_id = ?")
 	if err != nil {
 		fmt.Println("Unexpected invalid query in handleLoadCharacter")
-		return
-	}
-	if st == nil {
-		err = errors.New("handleLoadCharacter: wat")
-		fmt.Println("handleLoadCharacter: wat")
 		return
 	}
 	res, err := st.Run(charid)
@@ -198,33 +188,31 @@ func handleLoadCharacter(con *client.Connection, it maplelib.PacketIterator) (ha
 
 	row := rows[0]
 
-	colname := res.Map("name")
+	cstats := common.GetCharStatsFromDBRow(row, res)
+
 	coluserid := res.Map("user_id")
-	colmap := res.Map("map")
 	colgmlevel := res.Map("gm_level")
 	coladmin := res.Map("admin")
-	colface := res.Map("face")
-	colhair := res.Map("hair")
 	colworldid := res.Map("world_id")
-	colgender := res.Map("gender")
-	colskin := res.Map("skin")
-	colpos := res.Map("pos")
+	colmeso := res.Map("meso")
+	colbuddysize := res.Map("buddylist_size")
 
-	con.SetName(row.Str(colname))
+	/*
+		colequipslots := res.Map("equip_slots")
+		coluseslots := res.Map("use_slots")
+		coletcslots := res.Map("etc_slots")
+		colcashslots := res.Map("cash_slots")
+	*/
+
 	con.SetUserId(int32(row.Int(coluserid)))
-	con.SetMapId(int32(row.Int(colmap)))
 	con.SetGmLevel(int32(row.Int(colgmlevel)))
 	con.SetAdmin(row.Int(coladmin) > 0)
-	con.SetFace(int32(row.Int(colface)))
-	con.SetHair(int32(row.Int(colhair)))
 	con.SetWorldId(int8(row.Int(colworldid)))
-	con.SetGender(byte(row.Int(colgender)))
-	con.SetSkin(int8(row.Int(colskin)))
-	con.SetMapPos(int8(row.Int(colpos)))
+	con.SetStats(cstats)
+	con.SetMeso(int32(row.Int(colmeso)))
+	con.SetBuddylistSize(byte(row.Int(colbuddysize)))
 
-	// TODO: get buddylist size
-	// TODO: get stats
-	// TODO: get max inventory slots & meso
+	// TODO: get max inventory slots and init inventories
 
 	// TODO: do not reset uptime if the player is just xfering
 
@@ -261,7 +249,7 @@ func handleLoadCharacter(con *client.Connection, it maplelib.PacketIterator) (ha
 	// TODO: add player to player list
 	// TODO: add player to map's player list
 
-	fmt.Println(con.Conn().RemoteAddr().String(), "connected as", con.Name())
+	fmt.Println(con.Conn().RemoteAddr().String(), "connected as", con.Stats().Name())
 
 	err = con.SetDBOnline(true)
 	if err != nil {
@@ -297,10 +285,10 @@ func handleChangeMapSpecial(con *client.Connection, it maplelib.PacketIterator) 
 		return
 	}
 
-	fmt.Println(con.Name(), "entered", portalname, "in map", con.MapId())
+	fmt.Println(con.Stats().Name(), "entered", portalname, "in map", con.Stats().MapId())
 	portal := con.Map().Portal(portalname)
 	if portal == nil {
-		fmt.Println("Enabled actions for", con.Name())
+		fmt.Println("Enabled actions for", con.Stats().Name())
 		err = con.SendPacket(packets.EnableActions())
 	} else {
 		fmt.Println("Sending portal enter packet")
@@ -311,6 +299,7 @@ func handleChangeMapSpecial(con *client.Connection, it maplelib.PacketIterator) 
 	return
 }
 
+// handleChangeMap handles a map change or revival packet
 func handleChangeMap(con *client.Connection, it maplelib.PacketIterator) (handled bool, err error) {
 	reason, err := it.Decode1()
 	target, err := it.Decode4s()
@@ -318,9 +307,9 @@ func handleChangeMap(con *client.Connection, it maplelib.PacketIterator) (handle
 	portal := con.Map().Portal(portalname)
 
 	if reason == 1 {
-		fmt.Println(con.Name(), "died")
+		fmt.Println(con.Stats().Name(), "died")
 	} else {
-		fmt.Println(con.Name(), "is entering portal", portalname)
+		fmt.Println(con.Stats().Name(), "is entering portal", portalname)
 	}
 
 	switch {
@@ -329,7 +318,7 @@ func handleChangeMap(con *client.Connection, it maplelib.PacketIterator) (handle
 
 	case target != -1 && con.GmLevel() > 2:
 		// TODO: check chalkboard
-		oldmap := con.MapId()
+		oldmap := con.Stats().MapId()
 		err = con.SetMapId(target)
 		if err != nil {
 			con.SetMapId(oldmap)
@@ -340,7 +329,7 @@ func handleChangeMap(con *client.Connection, it maplelib.PacketIterator) (handle
 		}
 
 	case target != -1 && con.GmLevel() <= 2:
-		fmt.Println(con.Name(), "tried to map warp without gm powers.")
+		fmt.Println(con.Stats().Name(), "tried to map warp without gm powers.")
 
 	default:
 		if portal != nil {

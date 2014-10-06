@@ -151,3 +151,20 @@ func AnyNil(a ...interface{}) bool {
 type Pair struct {
 	First, Second interface{}
 }
+
+// Indent adds n \t 's at the beginning of each line of the given string
+// and returns the modified string.
+func Indent(str string, amount int) string {
+	lines := strings.Split(str, "\n")
+	indentation := ""
+
+	for i := 0; i < amount; i++ {
+		indentation += "\t"
+	}
+
+	for i, _ := range lines {
+		lines[i] = indentation + lines[i]
+	}
+
+	return strings.Join(lines, "\n")
+}

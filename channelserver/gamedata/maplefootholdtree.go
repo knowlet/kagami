@@ -34,6 +34,7 @@ type MapleFootholdTree struct {
 	maxDepth       int
 	maxDropX       int
 	minDropX       int
+	footholdcount  int // total foothold count (including all children)
 }
 
 // NewMapleFootholdTree initializes a new, empty foothold tree with a
@@ -57,6 +58,8 @@ func NewMapleFootholdTreeWithDepth(tp1, tp2 image.Point, depth int) *MapleFootho
 
 // Insert adds a foothold to the tree.
 func (this *MapleFootholdTree) Insert(fh *MapleFoothold) {
+	this.footholdcount++
+
 	if this.depth == 0 {
 		if fh.X1() > this.maxDropX {
 			this.maxDropX = fh.X1()
@@ -221,3 +224,4 @@ func (this *MapleFootholdTree) Y1() int       { return this.p1.Y }
 func (this *MapleFootholdTree) Y2() int       { return this.p2.Y }
 func (this *MapleFootholdTree) MaxDropX() int { return this.maxDropX }
 func (this *MapleFootholdTree) MinDropX() int { return this.minDropX }
+func (this *MapleFootholdTree) Size() int     { return this.footholdcount }
