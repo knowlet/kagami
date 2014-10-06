@@ -132,6 +132,69 @@ func (c *Connection) Uptime() int64                       { return c.uptime }
 func (c *Connection) SetUptime(uptime int64)              { c.uptime = uptime }
 func (c *Connection) BuddylistSize() byte                 { return c.buddylistSize }
 func (c *Connection) SetBuddylistSize(buddylistSize byte) { c.buddylistSize = buddylistSize }
+func (c *Connection) Alive() bool                         { return c.Stats().Hp() > 0 }
+
+// LoadFromDB retrieves the given character id's data and assigns it to this connection
+func (con *Connection) LoadFromDB(charid int32) (err error) {
+	// get char data from db
+	db := common.GetDB()
+	st, err := db.Prepare("SELECT c.*, a.gm_level, a.admin FROM `characters` c " +
+		"INNER JOIN `accounts` a ON c.user_id = a.id " +
+		"WHERE c.character_id = ?")
+	if err != nil {
+		fmt.Println("Unexpected invalid query in handleLoadCharacter")
+		return
+	}
+	res, err := st.Run(charid)
+	rows, err := res.GetRows()
+	if err != nil {
+		return
+	}
+
+	if len(rows) < 1 {
+		err = errors.New("Character not found.")
+		return
+	}
+
+	row := rows[0]
+
+	cstats := common.GetCharStatsFromDBRow(row, res)
+
+	coluserid := res.Map("user_id")
+	colgmlevel := res.Map("gm_level")
+	coladmin := res.Map("admin")
+	colworldid := res.Map("world_id")
+	colmeso := res.Map("meso")
+	colbuddysize := res.Map("buddylist_size")
+
+	/*
+		colequipslots := res.Map("equip_slots")
+		coluseslots := res.Map("use_slots")
+		coletcslots := res.Map("etc_slots")
+		colcashslots := res.Map("cash_slots")
+	*/
+
+	con.SetUserId(int32(row.Int(coluserid)))
+	con.SetGmLevel(int32(row.Int(colgmlevel)))
+	con.SetAdmin(row.Int(coladmin) > 0)
+	con.SetWorldId(int8(row.Int(colworldid)))
+	con.SetStats(cstats)
+	con.SetMeso(int32(row.Int(colmeso)))
+	con.SetBuddylistSize(byte(row.Int(colbuddysize)))
+
+	// TODO: get max inventory slots and init inventories
+
+	// TODO: do not reset uptime if the player is just xfering
+
+	con.SetUptime(0)
+	con.SetGmChat(con.GmChat() && con.GmLevel() > 0)
+
+	// TODO: get book cover (wtf is a book cover)
+	// TODO: init keymaps
+	// TODO: init hpmp
+
+	return
+}
 
 func (c *Connection) SetStats(v *common.CharStats) {
 	c.stats = v

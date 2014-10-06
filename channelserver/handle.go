@@ -28,7 +28,6 @@ import (
 	"github.com/Francesco149/kagami/channelserver/gamedata"
 	"github.com/Francesco149/kagami/channelserver/players"
 	"github.com/Francesco149/kagami/channelserver/status"
-	"github.com/Francesco149/kagami/common"
 	"github.com/Francesco149/kagami/common/interserver"
 	"github.com/Francesco149/kagami/common/packets"
 	"github.com/Francesco149/kagami/common/utils"
@@ -85,9 +84,9 @@ func connectData(con *client.Connection, chanid int8) (p maplelib.Packet) {
 	p.Encode8s(-1)              // what the hell is this
 
 	con.Stats().Encode(&p)
-
-	p.Encode1(100) // TODO: get real buddylist capacity
+	p.Encode1(con.BuddylistSize())
 	p.Encode4s(con.Meso())
+
 	// TODO: get real inv slots
 	p.Encode1(100) // equip slots
 	p.Encode1(100) // use slots
@@ -141,6 +140,7 @@ func handleLoadCharacter(con *client.Connection, it maplelib.PacketIterator) (ha
 	starttime := time.Now().Unix()
 	for {
 		if time.Now().Unix()-starttime > 30 {
+			err = errors.New("Pending connection timed out")
 			break
 		}
 
@@ -166,62 +166,10 @@ func handleLoadCharacter(con *client.Connection, it maplelib.PacketIterator) (ha
 	players.RemovePendingIp(charid)
 	players.Unlock()
 
-	// get char data from db
-	db := common.GetDB()
-	st, err := db.Prepare("SELECT c.*, a.gm_level, a.admin FROM `characters` c " +
-		"INNER JOIN `accounts` a ON c.user_id = a.id " +
-		"WHERE c.character_id = ?")
-	if err != nil {
-		fmt.Println("Unexpected invalid query in handleLoadCharacter")
-		return
-	}
-	res, err := st.Run(charid)
-	rows, err := res.GetRows()
+	err = con.LoadFromDB(charid)
 	if err != nil {
 		return
 	}
-
-	if len(rows) < 1 {
-		err = errors.New("Character not found.")
-		return
-	}
-
-	row := rows[0]
-
-	cstats := common.GetCharStatsFromDBRow(row, res)
-
-	coluserid := res.Map("user_id")
-	colgmlevel := res.Map("gm_level")
-	coladmin := res.Map("admin")
-	colworldid := res.Map("world_id")
-	colmeso := res.Map("meso")
-	colbuddysize := res.Map("buddylist_size")
-
-	/*
-		colequipslots := res.Map("equip_slots")
-		coluseslots := res.Map("use_slots")
-		coletcslots := res.Map("etc_slots")
-		colcashslots := res.Map("cash_slots")
-	*/
-
-	con.SetUserId(int32(row.Int(coluserid)))
-	con.SetGmLevel(int32(row.Int(colgmlevel)))
-	con.SetAdmin(row.Int(coladmin) > 0)
-	con.SetWorldId(int8(row.Int(colworldid)))
-	con.SetStats(cstats)
-	con.SetMeso(int32(row.Int(colmeso)))
-	con.SetBuddylistSize(byte(row.Int(colbuddysize)))
-
-	// TODO: get max inventory slots and init inventories
-
-	// TODO: do not reset uptime if the player is just xfering
-
-	con.SetUptime(0)
-	con.SetGmChat(con.GmChat() && con.GmLevel() > 0)
-
-	// TODO: get book cover (wtf is a book cover)
-	// TODO: init keymaps
-	// TODO: init hpmp
 
 	// TODO: check forced return map
 	// TODO: check if the player is dead and repawn him
@@ -301,19 +249,20 @@ func handleChangeMapSpecial(con *client.Connection, it maplelib.PacketIterator) 
 
 // handleChangeMap handles a map change or revival packet
 func handleChangeMap(con *client.Connection, it maplelib.PacketIterator) (handled bool, err error) {
-	reason, err := it.Decode1()
+	_, err = it.Decode1()
 	target, err := it.Decode4s()
 	portalname, err := it.DecodeString()
 	portal := con.Map().Portal(portalname)
 
-	if reason == 1 {
+	if target != -1 && !con.Alive() {
 		fmt.Println(con.Stats().Name(), "died")
 	} else {
-		fmt.Println(con.Stats().Name(), "is entering portal", portalname)
+		fmt.Println(con.Stats().Name(), "is entering portal",
+			portalname)
 	}
 
 	switch {
-	case target != -1 /*&& !con.Alive()*/ :
+	case target != -1 && !con.Alive():
 		fmt.Println("TODO: revive player")
 
 	case target != -1 && con.GmLevel() > 2:
