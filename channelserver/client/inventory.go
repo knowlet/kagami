@@ -15,8 +15,18 @@
 
 package client
 
-import "errors"
-import "github.com/Francesco149/kagami/channelserver/gamedata"
+import (
+	"errors"
+	"fmt"
+	"math"
+	"sort"
+)
+
+import (
+	"github.com/Francesco149/kagami/channelserver/gamedata"
+	"github.com/Francesco149/kagami/common"
+	"github.com/Francesco149/maplelib"
+)
 
 // InventoryType defines which inventory tab this inventory refers to
 type InventoryType int8
@@ -25,16 +35,20 @@ type InventoryType int8
 const (
 	INVENTORY_EQUIPPED = -1
 	INVENTORY_INVALID  = 0
-	INVENTORY_EQUIP    = iota
-	INVENTORY_USE
-	INVENTORY_SETUP
-	INVENTORY_ETC
-	INVENTORY_CASH
+	INVENTORY_EQUIP    = 1
+	INVENTORY_USE      = 2
+	INVENTORY_SETUP    = 3
+	INVENTORY_ETC      = 4
+	INVENTORY_CASH     = 5
 )
 
 // Bitmask returns the inventory type encoded as a bitmask
 func (this InventoryType) Bitmask() uint16 {
-	return uint16(2) << (uint16(this) % 32) // shifting by -1 (EQUIPPED) will result in << 31
+	return uint16(2) << (uint16(this) % 32)
+	// Shifting by -1 (EQUIPPED) will result in << 31.
+	// This mimicks java's negative shifting behaviour.
+	// Basically, if you shift by a negative value it will
+	// take the first 5 bits of the shift value (mod 32).
 }
 
 // InventoryTypeByWzName returns the proper inventory type for the given name
@@ -61,6 +75,106 @@ type Inventory struct {
 	inv      map[int8]gamedata.GenericItem
 	capacity int8
 	typ      InventoryType
+}
+
+// NewInventory initializes a new inventory data structure.
+func NewInventory(invtype InventoryType, maxSlots int8) *Inventory {
+	return &Inventory{
+		inv:      make(map[int8]gamedata.GenericItem),
+		capacity: maxSlots,
+		typ:      invtype,
+	}
+}
+
+type itemSorter []gamedata.GenericItem
+
+func (this itemSorter) Len() int      { return len(this) }
+func (this itemSorter) Swap(i, j int) { this[i], this[j] = this[j], this[i] }
+func (this itemSorter) Less(i, j int) bool {
+	return math.Abs(float64(this[i].Pos())) < math.Abs(float64(this[j].Pos()))
+}
+
+// Encode encodes an entire inventory to a maple packet
+func (this *Inventory) Encode(p *maplelib.Packet) {
+	if this.Type() == INVENTORY_EQUIPPED {
+		ordered := make([]gamedata.GenericItem, 0)
+		for _, item := range this.inv {
+			if item == nil {
+				continue
+			}
+			ordered = append(ordered, item)
+		}
+
+		if len(ordered) > 0 {
+			sort.Sort(itemSorter(ordered))
+
+			for _, item := range ordered {
+				item.Encode(p)
+			}
+		}
+	}
+
+	for _, item := range this.inv {
+		item.Encode(p)
+	}
+}
+
+func (this *Inventory) Capacity() int8 { return this.capacity }
+
+func (this *Inventory) LoadFromDB(charid int32) (err error) {
+	q := "SELECT * FROM items WHERE location = 'inventory' AND character_id = ? AND inv = ?"
+
+	t := this.Type()
+	if t == INVENTORY_EQUIPPED {
+		t = INVENTORY_EQUIP
+		q += " AND slot < 0"
+	} else {
+		q += " AND slot > 0"
+	}
+
+	db := common.GetDB()
+	st, err := db.Prepare(q)
+	if err != nil {
+		fmt.Println("Unexpected invalid query in inventory.LoadFromDB")
+		return
+	}
+
+	res, err := st.Run(charid, int8(t))
+	rows, err := res.GetRows()
+	if err != nil {
+		return
+	}
+
+	colitemid := res.Map("item_id")
+	colslot := res.Map("slot")
+	colamount := res.Map("amount")
+
+	if rows == nil || len(rows) == 0 {
+		return
+	}
+
+	for _, row := range rows {
+		if row == nil {
+			return
+		}
+
+		var it gamedata.GenericItem
+
+		if t == INVENTORY_EQUIP {
+			it = gamedata.NewEquip(int32(row.Int(colitemid)), int8(row.Int(colslot)),
+				-1) // todo: get ring id from db
+			// TODO: set equip data n shit
+		} else {
+			it = gamedata.NewItem(int32(row.Int(colitemid)), int8(row.Int(colslot)),
+				int16(row.Int(colamount)), -1) // todo: get pet id from db
+		}
+
+		if err = this.AddWithPosition(it); err != nil {
+			return
+		}
+	}
+
+	return
 }
 
 // Look for the given item in the inventory. If the item is not found, nil will be returned.
@@ -144,10 +258,12 @@ func (this *Inventory) swap(a, b gamedata.GenericItem) {
 	b.SetPos(tmp)
 }
 
+// Get returns the item located at the given slot
 func (this *Inventory) Get(slot int8) gamedata.GenericItem {
 	return this.inv[slot]
 }
 
+// Remove removes the given amount of the item located at the given slot
 func (this *Inventory) Remove(slot int8, amount int16) {
 	item := this.inv[slot]
 
@@ -165,14 +281,19 @@ func (this *Inventory) Remove(slot int8, amount int16) {
 	}
 }
 
+// Full returns true if all the slots in the inventory are currently being used
 func (this *Inventory) Full() bool {
 	return len(this.inv) >= int(this.capacity)
 }
 
+// WillBeFull returns true if all of the slots will be occupied after then given
+// amount of additional slots is occupied.
 func (this *Inventory) WillBeFull(addedAmount int) bool {
 	return len(this.inv)+addedAmount >= int(this.capacity)
 }
 
+// NextFreeSlot tries to find the first free slot in the inventory.
+// If no free slot is found, NextFreeSlot returns -1.
 func (this *Inventory) NextFreeSlot() int8 {
 	if this.Full() {
 		return -1
@@ -187,8 +308,11 @@ func (this *Inventory) NextFreeSlot() int8 {
 	return -1
 }
 
+// Type returns the inventory's type.
+// See InventoryType.
 func (this *Inventory) Type() InventoryType {
 	return this.typ
 }
 
+// Map returns a map by slot of the contents of the inventory.
 func (this *Inventory) Map() map[int8]gamedata.GenericItem { return this.inv }

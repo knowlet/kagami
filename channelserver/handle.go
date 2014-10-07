@@ -28,6 +28,7 @@ import (
 	"github.com/Francesco149/kagami/channelserver/gamedata"
 	"github.com/Francesco149/kagami/channelserver/players"
 	"github.com/Francesco149/kagami/channelserver/status"
+	"github.com/Francesco149/kagami/common/consts"
 	"github.com/Francesco149/kagami/common/interserver"
 	"github.com/Francesco149/kagami/common/packets"
 	"github.com/Francesco149/kagami/common/utils"
@@ -87,32 +88,40 @@ func connectData(con *client.Connection, chanid int8) (p maplelib.Packet) {
 	p.Encode1(con.BuddylistSize())
 	p.Encode4s(con.Meso())
 
-	// TODO: get real inv slots
-	p.Encode1(100) // equip slots
-	p.Encode1(100) // use slots
-	p.Encode1(100) // set-up slots
-	p.Encode1(100) // etc slots
-	p.Encode1(100) // cash slots
+	p.Encode1s(con.Inventory(consts.EquipInventory).Capacity()) // equip slots
+	p.Encode1s(con.Inventory(consts.UseInventory).Capacity())   // use slots
+	p.Encode1s(con.Inventory(consts.SetupInventory).Capacity()) // set-up slots
+	p.Encode1s(con.Inventory(consts.EtcInventory).Capacity())   // etc slots
+	p.Encode1s(con.Inventory(consts.CashInventory).Capacity())  // cash slots
 
-	// TODO: encode equips
+	con.Inventory(consts.CashInventory + 1).Encode(&p)
 	p.Encode2(0x0000) // inventories are zero-terminated lists
-	// TODO: encode equip inventory
+
+	con.Inventory(consts.EquipInventory).Encode(&p)
 	p.Encode1(0x00)
-	// TODO: encode use inventory
+
+	con.Inventory(consts.UseInventory).Encode(&p)
 	p.Encode1(0x00)
-	// TODO: encode set-up inventory
+
+	con.Inventory(consts.SetupInventory).Encode(&p)
 	p.Encode1(0x00)
-	// TODO: encode etc inventory
+
+	con.Inventory(consts.EtcInventory).Encode(&p)
 	p.Encode1(0x00)
-	// TODO: encode cash inventory
+
+	con.Inventory(consts.CashInventory).Encode(&p)
 	p.Encode1(0x00)
+
 	p.Encode2(0x0000) // 0 skills for now (placeholder)
 	// TODO: encode skills id's here
 	p.Encode2(0x0000)
+
 	con.EncodeQuestInfo(&p)
+
 	// TODO: encode rings
 	p.Encode8(0x0000000000000000)
 
+	// I have no idea
 	magic := []byte{0xFF, 0xC9, 0x9A, 0x3B}
 	for i := 0; i < 15; i++ {
 		p.Append(magic)

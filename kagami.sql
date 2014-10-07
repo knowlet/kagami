@@ -78,6 +78,7 @@ CREATE TABLE `characters` (
   `buddylist_size` int(3) unsigned NOT NULL DEFAULT '20',
   `equip_slots` int(11) NOT NULL DEFAULT '24',
   `use_slots` int(11) NOT NULL DEFAULT '24',
+  `setup_slots` int(11) NOT NULL DEFAULT '24',
   `etc_slots` int(11) NOT NULL DEFAULT '24',
   `cash_slots` int(11) NOT NULL DEFAULT '48',
   `meso` int(11) NOT NULL DEFAULT '0',
@@ -96,6 +97,7 @@ CREATE TABLE `items` (
   `user_id` int(11) NOT NULL,
   `world_id` int(11) NOT NULL,
   `item_id` int(11) NOT NULL,
+  `amount` int(11) NOT NULL DEFAULT '1',
   PRIMARY KEY (`character_id`,`inv`,`slot`,`location`),
   CONSTRAINT `items_ibfk_1` FOREIGN KEY (`character_id`) REFERENCES `characters` (`character_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

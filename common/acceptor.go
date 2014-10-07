@@ -37,6 +37,14 @@ type DisconnectCallback func(con Connection)
 // handleLoop is the packet handling / sending loop for a single connected client
 func HandleLoop(name string, basecon net.Conn, handler PacketHandler,
 	makeConnection ConnectionFactory, onDisconnect DisconnectCallback) {
+
+	// handle panic
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println(r, "\n\nRecovered from panic")
+		}
+	}()
+
 	defer basecon.Close()
 	con := makeConnection(basecon)
 

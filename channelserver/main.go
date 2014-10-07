@@ -118,4 +118,6 @@ func main() {
 			st.SetLoginConn(c)
 			return c
 		})
+
+	fnCleanup()
 }

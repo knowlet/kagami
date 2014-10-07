@@ -27,6 +27,7 @@ import (
 	"github.com/Francesco149/kagami/channelserver/gamedata"
 	"github.com/Francesco149/kagami/channelserver/status"
 	"github.com/Francesco149/kagami/common"
+	"github.com/Francesco149/kagami/common/consts"
 	"github.com/Francesco149/kagami/common/packets"
 	"github.com/Francesco149/kagami/common/utils"
 	"github.com/Francesco149/maplelib"
@@ -52,6 +53,7 @@ type Connection struct {
 	curmap                      *gamedata.MapleMap
 	meso                        int32
 	stats                       *common.CharStats
+	invs                        map[int8]*Inventory
 }
 
 // NewConnection initializes and returns an encrypted connection to a MapleStory client
@@ -71,6 +73,7 @@ func NewConnection(basecon net.Conn, testserver bool) *Connection {
 		curmap:              nil,
 		meso:                -1,
 		stats:               nil,
+		invs:                nil,
 	}
 }
 
@@ -133,6 +136,7 @@ func (c *Connection) SetUptime(uptime int64)              { c.uptime = uptime }
 func (c *Connection) BuddylistSize() byte                 { return c.buddylistSize }
 func (c *Connection) SetBuddylistSize(buddylistSize byte) { c.buddylistSize = buddylistSize }
 func (c *Connection) Alive() bool                         { return c.Stats().Hp() > 0 }
+func (c *Connection) Inventory(typ int8) *Inventory       { return c.invs[typ] }
 
 // LoadFromDB retrieves the given character id's data and assigns it to this connection
 func (con *Connection) LoadFromDB(charid int32) (err error) {
@@ -167,12 +171,11 @@ func (con *Connection) LoadFromDB(charid int32) (err error) {
 	colmeso := res.Map("meso")
 	colbuddysize := res.Map("buddylist_size")
 
-	/*
-		colequipslots := res.Map("equip_slots")
-		coluseslots := res.Map("use_slots")
-		coletcslots := res.Map("etc_slots")
-		colcashslots := res.Map("cash_slots")
-	*/
+	colequipslots := res.Map("equip_slots")
+	coluseslots := res.Map("use_slots")
+	colsetupslots := res.Map("setup_slots")
+	coletcslots := res.Map("etc_slots")
+	colcashslots := res.Map("cash_slots")
 
 	con.SetUserId(int32(row.Int(coluserid)))
 	con.SetGmLevel(int32(row.Int(colgmlevel)))
@@ -182,7 +185,20 @@ func (con *Connection) LoadFromDB(charid int32) (err error) {
 	con.SetMeso(int32(row.Int(colmeso)))
 	con.SetBuddylistSize(byte(row.Int(colbuddysize)))
 
-	// TODO: get max inventory slots and init inventories
+	con.invs = make(map[int8]*Inventory)
+	con.invs[consts.EquipInventory] = NewInventory(INVENTORY_EQUIP, int8(row.Int(colequipslots)))
+	con.invs[consts.UseInventory] = NewInventory(INVENTORY_USE, int8(row.Int(coluseslots)))
+	con.invs[consts.SetupInventory] = NewInventory(INVENTORY_SETUP, int8(row.Int(colsetupslots)))
+	con.invs[consts.EtcInventory] = NewInventory(INVENTORY_ETC, int8(row.Int(coletcslots)))
+	con.invs[consts.CashInventory] = NewInventory(INVENTORY_CASH, int8(row.Int(colcashslots)))
+	con.invs[consts.CashInventory+1] = NewInventory(INVENTORY_EQUIPPED, int8(100))
+
+	for _, inv := range con.invs {
+		err = inv.LoadFromDB(charid)
+		if err != nil {
+			return
+		}
+	}
 
 	// TODO: do not reset uptime if the player is just xfering
 

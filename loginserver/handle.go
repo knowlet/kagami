@@ -792,7 +792,7 @@ func handleCreateChar(con *client.Connection, it maplelib.PacketIterator) (handl
 	err = items.Create(con, bottom, charid, -consts.EquipBottom)
 	err = items.Create(con, shoes, charid, -consts.EquipShoe)
 	err = items.Create(con, weapon, charid, -consts.EquipWeapon)
-	err = items.Create(con, consts.BeginnersGuidebook, charid, -consts.EquipTop)
+	err = items.Create(con, consts.BeginnersGuidebook, charid, 1)
 	if err != nil {
 		return
 	}

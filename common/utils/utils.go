@@ -64,14 +64,14 @@ func UnixToTempBanTimestamp(unixSeconds int64) uint64 {
 	return nano100 + offset
 }
 
-// UnixToTempBanTimestamp converts a unix timestamp (in seconds) to a item timestamp
-func UnixToItemTimestamp(unixSeconds int64) uint64 {
+// MakeItemTimestamp crteates an item timestamp from some weird timestamp
+func MakeItemTimestamp(timestamp int64) int32 {
 	const realYear2000 = 946681229830
 	const itemYear2000 = 1085019342
-	millisecs := uint64(unixSeconds * 1000)
+	millisecs := uint64(timestamp * 1000)
 	time := (millisecs - realYear2000) / 1000 / 60
 	// what the fuck
-	return uint64(float64(time)*35.762787) - itemYear2000
+	return int32(float64(time)*35.762787) - itemYear2000
 }
 
 // UnixToQuestTimestamp converts a unix timestamp (in seconds) to a quest timestamp
