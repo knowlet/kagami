@@ -21,7 +21,6 @@ import (
 	"github.com/Francesco149/kagami/channelserver/gamedata"
 	"github.com/Francesco149/kagami/common"
 	"github.com/Francesco149/kagami/common/config"
-	"github.com/Francesco149/maplelib/wz"
 )
 
 var Get = make(chan *Status, 1)
@@ -32,8 +31,6 @@ type Status struct {
 	worldConf       *config.WorldConf
 	worldConn       *common.InterserverClient
 	loginConn       *common.InterserverClient
-	mapProvider     wz.MapleDataProvider
-	stringsProvider wz.MapleDataProvider
 	mapFactory      *gamedata.MapleMapFactory
 }
 
@@ -43,8 +40,6 @@ func (this *Status) Port() int16                           { return this.port }
 func (this *Status) WorldConf() *config.WorldConf          { return this.worldConf }
 func (this *Status) WorldConn() *common.InterserverClient  { return this.worldConn }
 func (this *Status) LoginConn() *common.InterserverClient  { return this.loginConn }
-func (this *Status) MapProvider() wz.MapleDataProvider     { return this.mapProvider }
-func (this *Status) StringsProvider() wz.MapleDataProvider { return this.stringsProvider }
 func (this *Status) MapFactory() *gamedata.MapleMapFactory { return this.mapFactory }
 
 func (this *Status) SetWorldId(v int8)                         { this.worldId = v }
@@ -53,20 +48,16 @@ func (this *Status) SetPort(v int16)                           { this.port = v }
 func (this *Status) SetWorldConf(v *config.WorldConf)          { this.worldConf = v }
 func (this *Status) SetWorldConn(v *common.InterserverClient)  { this.worldConn = v }
 func (this *Status) SetLoginConn(v *common.InterserverClient)  { this.loginConn = v }
-func (this *Status) SetMapProvider(v wz.MapleDataProvider)     { this.mapProvider = v }
-func (this *Status) SetStringsProvider(v wz.MapleDataProvider) { this.stringsProvider = v }
 func (this *Status) SetMapFactory(v *gamedata.MapleMapFactory) { this.mapFactory = v }
 
 func Init() {
 	Get <- &Status{
-		worldId:         -1,
-		chanId:          -1,
-		port:            -1,
-		worldConf:       nil,
-		worldConn:       nil,
-		loginConn:       nil,
-		mapProvider:     nil,
-		stringsProvider: nil,
-		mapFactory:      nil,
+		worldId:    -1,
+		chanId:     -1,
+		port:       -1,
+		worldConf:  nil,
+		worldConn:  nil,
+		loginConn:  nil,
+		mapFactory: nil,
 	}
 }

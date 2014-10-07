@@ -148,8 +148,7 @@ func MakeBlockMessage(header string, a ...interface{}) string {
 	return fmt.Sprint("\n",
 		FillLine(" "+header+" ", '*'),
 		msg, "\n",
-		FillLine("", '*'),
-		"\n")
+		FillLine("", '*'))
 }
 
 // MakeBlockMessage formats a message inside an ascii art box with the given header
@@ -159,8 +158,7 @@ func MakeBlockMessagef(header, format string, a ...interface{}) string {
 	return fmt.Sprint("\n",
 		FillLine(" "+header+" ", '*'),
 		msg, "\n",
-		FillLine("", '*'),
-		"\n")
+		FillLine("", '*'))
 }
 
 // MakeWarning formats a warning message.

@@ -36,7 +36,6 @@ import (
 	"github.com/Francesco149/kagami/common/interserver"
 	"github.com/Francesco149/kagami/common/utils"
 	"github.com/Francesco149/maplelib"
-	"github.com/Francesco149/maplelib/wz"
 )
 
 func checkError(err error) {
@@ -50,24 +49,19 @@ func main() {
 
 	fmt.Println("Kagami Pre-Alpha")
 	fmt.Println("Initializing ChannelServer...")
-	fmt.Println(utils.MakeNote("To terminate this process, press CTRL + C. ",
-		"Closing the terminal window will prevent the server from ",
-		"gracefully saving the current state."))
 
-	fmt.Println("Loading Map.wz and String.wz")
-	mapProvider, err := wz.NewMapleDataProvider("wz/Map.wz")
+	err := gamedata.InitProviders()
 	checkError(err)
-	stringProvider, err := wz.NewMapleDataProvider("wz/String.wz")
-	checkError(err)
-	factory, err := gamedata.NewMapleMapFactory(mapProvider, stringProvider)
-	checkError(err)
+	factory := gamedata.NewMapleMapFactory()
 
 	status.Init()
 	st := <-status.Get
-	st.SetMapProvider(mapProvider)
-	st.SetStringsProvider(stringProvider)
 	st.SetMapFactory(factory)
 	status.Get <- st
+
+	fmt.Println(utils.MakeNote("To terminate this process, press CTRL + C. ",
+		"Closing the terminal window will prevent the server from ",
+		"gracefully saving the current state."))
 
 	// disconnect all players if the server panics or is closed non-gracefully
 	fnCleanup := func() {

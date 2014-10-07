@@ -27,7 +27,6 @@ import (
 	"github.com/Francesco149/maplelib/wz"
 )
 
-var reactorData wz.MapleDataProvider = nil
 var reactorStats = make(map[int32]*MapleReactorStats)
 
 // stateData contains information about a MapleReactor's status
@@ -46,15 +45,6 @@ type MapleReactorStats struct {
 // NewMapleReactorStats retrieves data for the given reactor from wz files
 // and caches it for future usage.
 func NewMapleReactorStats(reactId int32) *MapleReactorStats {
-	// initialize wz source if it isn't already
-	if reactorData == nil {
-		var err error
-		reactorData, err = wz.NewMapleDataProvider("wz/Reactor.wz")
-		if err != nil {
-			return nil
-		}
-	}
-
 	// see if the map is already cached
 	stats := reactorStats[reactId]
 	if stats != nil {
@@ -63,7 +53,7 @@ func NewMapleReactorStats(reactId int32) *MapleReactorStats {
 
 	// img file
 	infoId := reactId
-	reactorImg, err := reactorData.Get(fmt.Sprintf("%09d", infoId) + ".img")
+	reactorImg, err := GetReactorWz().Get(fmt.Sprintf("%09d", infoId) + ".img")
 	if err != nil {
 		return nil
 	}
@@ -84,7 +74,7 @@ func NewMapleReactorStats(reactId int32) *MapleReactorStats {
 	}
 
 	// img file of the linked reactor
-	reactorImg, err = reactorData.Get(fmt.Sprintf("%09d", infoId) + ".img")
+	reactorImg, err = GetReactorWz().Get(fmt.Sprintf("%09d", infoId) + ".img")
 	if err != nil {
 		return nil
 	}

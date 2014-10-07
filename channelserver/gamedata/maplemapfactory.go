@@ -36,23 +36,15 @@ const debug = false
 // to initialize MapleMap objects for the desired maps.
 // It also caches loaded maps to reuse them.
 type MapleMapFactory struct {
-	source   wz.MapleDataProvider
-	nameData wz.MapleData
-	maps     map[int32]*MapleMap
+	maps map[int32]*MapleMap
 }
 
 // NewMapleMapFactory initializes a new map factory from the given Map.wz and String.wz
 // data sources
-func NewMapleMapFactory(mapSource, stringSource wz.MapleDataProvider) (*MapleMapFactory, error) {
-	tmp, err := stringSource.Get("Map.img")
-	if err != nil {
-		return nil, err
-	}
+func NewMapleMapFactory() *MapleMapFactory {
 	return &MapleMapFactory{
-		source:   mapSource,
-		nameData: tmp,
-		maps:     make(map[int32]*MapleMap),
-	}, nil
+		maps: make(map[int32]*MapleMap),
+	}
 }
 
 // DebugPrintln is a wrapper around fmt.Println that is only called when debug is enabled iternally
@@ -76,7 +68,7 @@ func (f *MapleMapFactory) Get(mapid int32, respawns, npcs, reactors bool) *Maple
 
 	// img file
 	mapPath := GetMapPath(mapid)
-	mapData, err := f.source.Get(mapPath)
+	mapData, err := GetMapWz().Get(mapPath)
 	if err != nil {
 		DebugPrintln("nil mapPath")
 		return nil
@@ -313,7 +305,7 @@ func (f *MapleMapFactory) Get(mapid int32, respawns, npcs, reactors bool) *Maple
 	mapStringPath := GetMapStringPath(mapid)
 	DebugPrintln("\nmapStringPath =", mapStringPath)
 
-	mapStringsData := f.nameData.ChildByPath(mapStringPath)
+	mapStringsData := GetMapStringImg().ChildByPath(mapStringPath)
 	if mapStringsData == nil {
 		DebugPrintln("no strings for this map")
 		res.SetMapName("")

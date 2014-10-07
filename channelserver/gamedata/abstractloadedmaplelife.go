@@ -18,7 +18,6 @@ package gamedata
 // This is a nearly 1:1 port of OdinMS' wz xml parsing, so credits to OdinMS.
 
 import (
-	"errors"
 	"fmt"
 	"image"
 	"strconv"
@@ -33,9 +32,6 @@ import (
 // NOTE: this doesn't need thread safety because it is only called when loading
 // maps and maps are thread-safe already
 
-var initialized = false
-var data, stringDataWZ wz.MapleDataProvider = nil, nil
-var mobStringData, npcStringData wz.MapleData = nil, nil
 var monsterStats = make(map[int32]*MapleMonsterStats)
 
 // IAbstractLoadedMapleLife is a generic interface to access the data of
@@ -128,49 +124,10 @@ func (l *AbstractLoadedMapleLife) Rx1() int32         { return l.rx1 }
 func (l *AbstractLoadedMapleLife) SetRx1(v int32)     { l.rx1 = v }
 func (l *AbstractLoadedMapleLife) Id() int32          { return l.id }
 
-func initIfNotInitialized() (err error) {
-	if initialized {
-		return
-	}
-
-	data, err = wz.NewMapleDataProvider("wz/Mob.wz")
-	if err != nil {
-		return
-	}
-
-	stringDataWZ, err = wz.NewMapleDataProvider("wz/String.wz")
-	if err != nil {
-		return
-	}
-
-	mobStringData, err = stringDataWZ.Get("Mob.img")
-	if err != nil {
-		return
-	}
-
-	npcStringData, err = stringDataWZ.Get("Npc.img")
-	if err != nil {
-		return
-	}
-
-	if mobStringData == nil || npcStringData == nil {
-		err = errors.New("mobStringData or npcStringData are nil")
-	}
-
-	initialized = true
-
-	return
-}
-
 // MakeMapleLife looks up the given life entity in wz files and returns
 // a generic interface to the entity's data.
 // If the entity is not found or invalid / not supported, nil will be returned.
 func MakeMapleLife(id int32, lifetype string) IAbstractLoadedMapleLife {
-	err := initIfNotInitialized()
-	if err != nil {
-		return nil
-	}
-
 	switch strings.ToLower(lifetype) {
 	case "n": // NPC
 		npc := getNPC(id)
@@ -204,7 +161,7 @@ func getMonster(id int32) *MapleMonster {
 	// nope, the monster needs to be loaded
 
 	// the id must be zero-padded to 7 digits
-	monsterData, err := data.Get(fmt.Sprintf("%07d", id) + ".img")
+	monsterData, err := GetMobWz().Get(fmt.Sprintf("%07d", id) + ".img")
 	if err != nil {
 		DebugPrintln(err)
 		return nil
@@ -238,7 +195,7 @@ func getMonster(id int32) *MapleMonster {
 	stats.SetUndead(undead > 0)
 
 	// name & buff
-	stats.SetName(wz.GetStringD(mobStringData.ChildByPath(fmt.Sprintf("%d/name", id)),
+	stats.SetName(wz.GetStringD(GetMobStringImg().ChildByPath(fmt.Sprintf("%d/name", id)),
 		"LOLI 404 CHEST NOT FOUND"))
 	stats.SetBuffToGive(wz.GetIntConvertD(monsterInfoData.ChildByPath("buff"), -1))
 
@@ -333,7 +290,7 @@ func getMonster(id int32) *MapleMonster {
 func getNPC(id int32) *MapleNPC {
 	// NPC's only need strings data
 	return NewMapleNPC(id, wz.GetStringD(
-		npcStringData.ChildByPath(fmt.Sprintf("%d/name", id)),
+		GetNpcStringImg().ChildByPath(fmt.Sprintf("%d/name", id)),
 		"LOLI 404 CHEST NOT FOUND"))
 }
 

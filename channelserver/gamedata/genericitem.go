@@ -15,40 +15,25 @@
 
 package gamedata
 
-// This is a nearly 1:1 port of OdinMS' wz xml parsing, so credits to OdinMS.
+// ItemType represents the type of an item stored in the player's inventory.
+type ItemType byte
 
-import "strings"
-
-// Element is a maplestory element type
-type Element int
-
-// Possible values for Element
+// Possible values for ItemType.
 const (
-	NEUTRAL Element = iota
-	FIRE
-	ICE
-	LIGHTING
-	POISON
-	HOLY /* SHIT */
-	INVALID_ELEMENT
+	ITEM_ITEM  = 2
+	ITEM_EQUIP = 1
 )
 
-// ElementFromChar converts the wz representation of elements to an Element
-func ElementFromChar(c string) Element {
-	switch strings.ToLower(c) {
-	case "f":
-		return FIRE
-	case "i":
-		return ICE
-	case "l":
-		return LIGHTING
-	case "s":
-		return POISON
-	case "h":
-		return HOLY
-	default:
-		return INVALID_ELEMENT
-	}
-
-	return INVALID_ELEMENT
+// GenericItem is a generic interface for items stored in the inventory.
+type GenericItem interface {
+	Type() int8
+	Pos() int8
+	SetPos(v int8)
+	Id() int32
+	Amount() int16
+	SetAmount(v int16)
+	Owner() string
+	SetOwner(v string)
+	PetId() int32
+	Clone() GenericItem
 }

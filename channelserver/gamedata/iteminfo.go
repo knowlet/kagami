@@ -15,40 +15,14 @@
 
 package gamedata
 
-// This is a nearly 1:1 port of OdinMS' wz xml parsing, so credits to OdinMS.
+func IsThrowingStar(i GenericItem) bool {
+	return i.Id() >= 2070000 && i.Id() < 2080000
+}
 
-import "strings"
+func IsBullet(i GenericItem) bool {
+	return i.Id()/10000 == 233
+}
 
-// Element is a maplestory element type
-type Element int
-
-// Possible values for Element
-const (
-	NEUTRAL Element = iota
-	FIRE
-	ICE
-	LIGHTING
-	POISON
-	HOLY /* SHIT */
-	INVALID_ELEMENT
-)
-
-// ElementFromChar converts the wz representation of elements to an Element
-func ElementFromChar(c string) Element {
-	switch strings.ToLower(c) {
-	case "f":
-		return FIRE
-	case "i":
-		return ICE
-	case "l":
-		return LIGHTING
-	case "s":
-		return POISON
-	case "h":
-		return HOLY
-	default:
-		return INVALID_ELEMENT
-	}
-
-	return INVALID_ELEMENT
+func IsStackable(i GenericItem) bool {
+	return !IsThrowingStar(i) && !IsBullet(i)
 }
