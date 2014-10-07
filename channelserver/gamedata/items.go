@@ -17,7 +17,6 @@ package gamedata
 
 import (
 	"errors"
-	"fmt"
 	"time"
 )
 
@@ -199,8 +198,6 @@ func (this *Equip) Encode(p *maplelib.Packet) {
 	equipped := pos < 0
 	pet := this.PetId() > -1
 
-	fmt.Println("encoding", this.Id(), "at", this.Pos())
-
 	if equipped {
 		pos *= -1
 
@@ -208,14 +205,11 @@ func (this *Equip) Encode(p *maplelib.Packet) {
 			masking = true
 			p.Encode1(0x00)
 			p.Encode1s(pos - 100)
-			fmt.Println(pos - 100)
 		} else {
 			p.Encode1s(pos)
-			fmt.Println(pos)
 		}
 	} else {
 		p.Encode1s(this.Pos())
-		fmt.Println("unequipped")
 	}
 
 	if this.PetId() > -1 {
