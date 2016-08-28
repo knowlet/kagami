@@ -17,7 +17,7 @@ package common
 
 import (
 	"github.com/knowlet/kagami/common/packets"
-	"github.com/Francesco149/maplelib"
+	"github.com/knowlet/maplelib"
 )
 
 // Handle handles packets that are common to all three servers

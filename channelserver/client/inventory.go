@@ -25,7 +25,7 @@ import (
 import (
 	"github.com/knowlet/kagami/channelserver/gamedata"
 	"github.com/knowlet/kagami/common"
-	"github.com/Francesco149/maplelib"
+	"github.com/knowlet/maplelib"
 )
 
 // InventoryType defines which inventory tab this inventory refers to

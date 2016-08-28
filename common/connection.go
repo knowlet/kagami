@@ -15,7 +15,7 @@
 
 package common
 
-import "github.com/Francesco149/maplelib"
+import "github.com/knowlet/maplelib"
 import "net"
 
 // A connection is a generic wrapper for a client connected to a packet oriented protocol

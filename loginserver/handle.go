@@ -31,7 +31,7 @@ import (
 	"github.com/knowlet/kagami/loginserver/items"
 	"github.com/knowlet/kagami/loginserver/validators"
 	"github.com/knowlet/kagami/loginserver/worlds"
-	"github.com/Francesco149/maplelib"
+	"github.com/knowlet/maplelib"
 )
 
 // Handle handles loginserver packets

@@ -20,7 +20,7 @@ import "sync"
 
 import (
 	"github.com/knowlet/kagami/worldserver/status"
-	"github.com/Francesco149/maplelib"
+	"github.com/knowlet/maplelib"
 )
 
 var mut sync.Mutex

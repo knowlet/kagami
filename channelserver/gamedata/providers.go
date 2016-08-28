@@ -22,7 +22,7 @@ import (
 
 import (
 	"github.com/knowlet/kagami/common/utils"
-	"github.com/Francesco149/maplelib/wz"
+	"github.com/knowlet/maplelib/wz"
 )
 
 var mapWz, mobWz, itemWz, characterWz, stringWz, reactorWz wz.MapleDataProvider

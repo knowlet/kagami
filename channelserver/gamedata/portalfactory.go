@@ -25,7 +25,7 @@ import (
 
 import (
 	"github.com/knowlet/kagami/common/utils"
-	"github.com/Francesco149/maplelib/wz"
+	"github.com/knowlet/maplelib/wz"
 )
 
 // PortalFactory is responsible for loading portal data from wz files

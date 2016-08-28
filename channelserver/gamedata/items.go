@@ -23,7 +23,7 @@ import (
 import (
 	"github.com/knowlet/kagami/common/consts"
 	"github.com/knowlet/kagami/common/utils"
-	"github.com/Francesco149/maplelib"
+	"github.com/knowlet/maplelib"
 )
 
 var ITEM_MAGIC = []byte{0x80, 0x05}

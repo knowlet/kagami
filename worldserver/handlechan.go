@@ -26,7 +26,7 @@ import (
 	"github.com/knowlet/kagami/common/utils"
 	"github.com/knowlet/kagami/worldserver/channels"
 	"github.com/knowlet/kagami/worldserver/status"
-	"github.com/Francesco149/maplelib"
+	"github.com/knowlet/maplelib"
 )
 
 func makeChannelPort(chanid int8) int16 {
