@@ -15,7 +15,7 @@
 
 package worlds
 
-import "github.com/Francesco149/kagami/common/config"
+import "github.com/knowlet/kagami/common/config"
 
 // A World holds information about a single world, such as the player load, listening port and so on
 type World struct {

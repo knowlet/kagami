@@ -57,11 +57,11 @@ Now you can go ahead and test maplelib and other libraries:
 
 Once you've made sure that all of the libraries are working properly, you can obtain the actual server:
 
-	go get github.com/Francesco149/kagami
+	go get github.com/knowlet/kagami
 
 If you want, you can also manually clone the repository anywhere you want by running
 
-	git clone https://github.com/Francesco149/kagami.git
+	git clone https://github.com/knowlet/kagami.git
     
 Before you run the server you will also need to configure your MySQL database 
 info in kagami/common/consts/consts.go . Don't worry, this is temporary - 
@@ -76,7 +76,7 @@ Running the server
 ============
 To compile the server, all you have to do is:
 
-	go install github.com/Francesco149/kagami/...
+	go install github.com/knowlet/kagami/...
 
 And then simply run loginserver, worldserver and as many channels servers as you like in your $GOPATH/bin directory.
     
@@ -88,4 +88,4 @@ You can view the documentation as HTML by simply running
 
 and visiting
 
-	http://localhost:6060/pkg/github.com/Francesco149/kagami/
+	http://localhost:6060/pkg/github.com/knowlet/kagami/

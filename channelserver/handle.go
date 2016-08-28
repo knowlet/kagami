@@ -24,14 +24,14 @@ import (
 )
 
 import (
-	"github.com/Francesco149/kagami/channelserver/client"
-	"github.com/Francesco149/kagami/channelserver/gamedata"
-	"github.com/Francesco149/kagami/channelserver/players"
-	"github.com/Francesco149/kagami/channelserver/status"
-	"github.com/Francesco149/kagami/common/consts"
-	"github.com/Francesco149/kagami/common/interserver"
-	"github.com/Francesco149/kagami/common/packets"
-	"github.com/Francesco149/kagami/common/utils"
+	"github.com/knowlet/kagami/channelserver/client"
+	"github.com/knowlet/kagami/channelserver/gamedata"
+	"github.com/knowlet/kagami/channelserver/players"
+	"github.com/knowlet/kagami/channelserver/status"
+	"github.com/knowlet/kagami/common/consts"
+	"github.com/knowlet/kagami/common/interserver"
+	"github.com/knowlet/kagami/common/packets"
+	"github.com/knowlet/kagami/common/utils"
 	"github.com/Francesco149/maplelib"
 )
 

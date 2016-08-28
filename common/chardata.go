@@ -21,7 +21,7 @@ import (
 )
 
 import (
-	"github.com/Francesco149/kagami/common/consts"
+	"github.com/knowlet/kagami/common/consts"
 	"github.com/Francesco149/maplelib"
 	"github.com/ziutek/mymysql/mysql"
 )

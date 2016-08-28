@@ -24,11 +24,11 @@ import (
 )
 
 import (
-	"github.com/Francesco149/kagami/common"
-	"github.com/Francesco149/kagami/common/config"
-	"github.com/Francesco149/kagami/common/consts"
-	"github.com/Francesco149/kagami/loginserver/client"
-	"github.com/Francesco149/kagami/loginserver/worlds"
+	"github.com/knowlet/kagami/common"
+	"github.com/knowlet/kagami/common/config"
+	"github.com/knowlet/kagami/common/consts"
+	"github.com/knowlet/kagami/loginserver/client"
+	"github.com/knowlet/kagami/loginserver/worlds"
 	"github.com/Francesco149/maplelib"
 )
 

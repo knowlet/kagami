@@ -21,11 +21,11 @@ import (
 )
 
 import (
-	"github.com/Francesco149/kagami/common/interserver"
-	"github.com/Francesco149/kagami/common/packets"
-	"github.com/Francesco149/kagami/common/utils"
-	"github.com/Francesco149/kagami/worldserver/channels"
-	"github.com/Francesco149/kagami/worldserver/status"
+	"github.com/knowlet/kagami/common/interserver"
+	"github.com/knowlet/kagami/common/packets"
+	"github.com/knowlet/kagami/common/utils"
+	"github.com/knowlet/kagami/worldserver/channels"
+	"github.com/knowlet/kagami/worldserver/status"
 	"github.com/Francesco149/maplelib"
 )
 

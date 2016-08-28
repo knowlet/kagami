@@ -16,7 +16,7 @@
 package worlds
 
 import "net"
-import "github.com/Francesco149/kagami/common"
+import "github.com/knowlet/kagami/common"
 
 // worlds.Connection represent a connection accepted by the channel server or world server.
 // It's a wrapper around EncryptedConnection specialized for inter-server communication.

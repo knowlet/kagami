@@ -22,15 +22,15 @@ import (
 )
 
 import (
-	"github.com/Francesco149/kagami/common"
-	"github.com/Francesco149/kagami/common/consts"
-	"github.com/Francesco149/kagami/common/interserver"
-	"github.com/Francesco149/kagami/common/packets"
-	"github.com/Francesco149/kagami/common/utils"
-	"github.com/Francesco149/kagami/loginserver/client"
-	"github.com/Francesco149/kagami/loginserver/items"
-	"github.com/Francesco149/kagami/loginserver/validators"
-	"github.com/Francesco149/kagami/loginserver/worlds"
+	"github.com/knowlet/kagami/common"
+	"github.com/knowlet/kagami/common/consts"
+	"github.com/knowlet/kagami/common/interserver"
+	"github.com/knowlet/kagami/common/packets"
+	"github.com/knowlet/kagami/common/utils"
+	"github.com/knowlet/kagami/loginserver/client"
+	"github.com/knowlet/kagami/loginserver/items"
+	"github.com/knowlet/kagami/loginserver/validators"
+	"github.com/knowlet/kagami/loginserver/worlds"
 	"github.com/Francesco149/maplelib"
 )
 

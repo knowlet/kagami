@@ -16,7 +16,7 @@
 package interserver
 
 import (
-	"github.com/Francesco149/kagami/common/packets"
+	"github.com/knowlet/kagami/common/packets"
 	"github.com/Francesco149/maplelib"
 )
 

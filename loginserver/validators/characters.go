@@ -19,9 +19,9 @@ package validators
 import "fmt"
 
 import (
-	"github.com/Francesco149/kagami/common"
-	"github.com/Francesco149/kagami/common/consts"
-	"github.com/Francesco149/kagami/loginserver/client"
+	"github.com/knowlet/kagami/common"
+	"github.com/knowlet/kagami/common/consts"
+	"github.com/knowlet/kagami/loginserver/client"
 )
 
 // OwnsCharacter checks if the user owns the given character id

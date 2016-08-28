@@ -20,8 +20,8 @@ package status
 import "sync"
 
 import (
-	"github.com/Francesco149/kagami/common"
-	"github.com/Francesco149/kagami/common/config"
+	"github.com/knowlet/kagami/common"
+	"github.com/knowlet/kagami/common/config"
 )
 
 var mut sync.Mutex

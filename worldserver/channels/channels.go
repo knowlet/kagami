@@ -19,7 +19,7 @@ package channels
 import "sync"
 
 import (
-	"github.com/Francesco149/kagami/worldserver/status"
+	"github.com/knowlet/kagami/worldserver/status"
 	"github.com/Francesco149/maplelib"
 )
 

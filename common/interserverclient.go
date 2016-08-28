@@ -16,7 +16,7 @@
 package common
 
 import "net"
-import "github.com/Francesco149/kagami/common/interserver"
+import "github.com/knowlet/kagami/common/interserver"
 
 // An InterserverClient is a connection to another component of the server.
 // It's a wrapper around EncryptedConnection specialized for inter-server communication.

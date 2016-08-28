@@ -18,7 +18,7 @@ package common
 import "fmt"
 
 import (
-	"github.com/Francesco149/kagami/common/consts"
+	"github.com/knowlet/kagami/common/consts"
 	"github.com/ziutek/mymysql/mysql"
 	_ "github.com/ziutek/mymysql/thrsafe" // Thread safe engine
 )

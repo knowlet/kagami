@@ -18,9 +18,9 @@
 package status
 
 import (
-	"github.com/Francesco149/kagami/channelserver/gamedata"
-	"github.com/Francesco149/kagami/common"
-	"github.com/Francesco149/kagami/common/config"
+	"github.com/knowlet/kagami/channelserver/gamedata"
+	"github.com/knowlet/kagami/common"
+	"github.com/knowlet/kagami/common/config"
 )
 
 var Get = make(chan *Status, 1)

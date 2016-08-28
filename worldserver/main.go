@@ -24,9 +24,9 @@ import (
 )
 
 import (
-	"github.com/Francesco149/kagami/common"
-	"github.com/Francesco149/kagami/common/consts"
-	"github.com/Francesco149/kagami/common/interserver"
+	"github.com/knowlet/kagami/common"
+	"github.com/knowlet/kagami/common/consts"
+	"github.com/knowlet/kagami/common/interserver"
 	"github.com/Francesco149/maplelib"
 )
 

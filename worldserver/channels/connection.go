@@ -16,7 +16,7 @@
 package channels
 
 import "net"
-import "github.com/Francesco149/kagami/common"
+import "github.com/knowlet/kagami/common"
 
 // A channls.Connection is a connection accepted by the channel server.
 // It's a wrapper around EncryptedConnection specialized for inter-server communication.

@@ -21,9 +21,9 @@ import (
 )
 
 import (
-	"github.com/Francesco149/kagami/common/interserver"
-	"github.com/Francesco149/kagami/common/utils"
-	"github.com/Francesco149/kagami/loginserver/worlds"
+	"github.com/knowlet/kagami/common/interserver"
+	"github.com/knowlet/kagami/common/utils"
+	"github.com/knowlet/kagami/loginserver/worlds"
 	"github.com/Francesco149/maplelib"
 )
 

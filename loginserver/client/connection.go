@@ -24,7 +24,7 @@ import (
 	"time"
 )
 
-import "github.com/Francesco149/kagami/common"
+import "github.com/knowlet/kagami/common"
 
 // Possible player statuses used by SetStatus and Status
 const (

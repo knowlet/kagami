@@ -22,12 +22,12 @@ import (
 )
 
 import (
-	"github.com/Francesco149/kagami/common"
-	"github.com/Francesco149/kagami/common/config"
-	"github.com/Francesco149/kagami/common/consts"
-	"github.com/Francesco149/kagami/common/interserver"
-	"github.com/Francesco149/kagami/worldserver/channels"
-	"github.com/Francesco149/kagami/worldserver/status"
+	"github.com/knowlet/kagami/common"
+	"github.com/knowlet/kagami/common/config"
+	"github.com/knowlet/kagami/common/consts"
+	"github.com/knowlet/kagami/common/interserver"
+	"github.com/knowlet/kagami/worldserver/channels"
+	"github.com/knowlet/kagami/worldserver/status"
 	"github.com/Francesco149/maplelib"
 )
 

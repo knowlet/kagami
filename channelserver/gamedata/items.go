@@ -21,8 +21,8 @@ import (
 )
 
 import (
-	"github.com/Francesco149/kagami/common/consts"
-	"github.com/Francesco149/kagami/common/utils"
+	"github.com/knowlet/kagami/common/consts"
+	"github.com/knowlet/kagami/common/utils"
 	"github.com/Francesco149/maplelib"
 )
 

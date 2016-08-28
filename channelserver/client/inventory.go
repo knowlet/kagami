@@ -23,8 +23,8 @@ import (
 )
 
 import (
-	"github.com/Francesco149/kagami/channelserver/gamedata"
-	"github.com/Francesco149/kagami/common"
+	"github.com/knowlet/kagami/channelserver/gamedata"
+	"github.com/knowlet/kagami/common"
 	"github.com/Francesco149/maplelib"
 )
 
