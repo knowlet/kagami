@@ -19,7 +19,7 @@ package config
 
 import (
 	"github.com/knowlet/kagami/common/consts"
-	"github.com/Francesco149/maplelib"
+	"github.com/knowlet/maplelib"
 )
 
 // A PacketEncodable is a generic interface for all data structures that

@@ -17,7 +17,7 @@ package packets
 
 import (
 	"github.com/knowlet/kagami/common/utils"
-	"github.com/Francesco149/maplelib"
+	"github.com/knowlet/maplelib"
 	"sort"
 )
 

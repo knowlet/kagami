@@ -21,7 +21,7 @@ import (
 	"net"
 )
 
-import "github.com/Francesco149/maplelib"
+import "github.com/knowlet/maplelib"
 
 // An InterserverConnection is a connection accepted from another component of the server.
 // It's a wrapper around EncryptedConnection specialized for inter-server communication.

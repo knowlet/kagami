@@ -28,7 +28,7 @@ import (
 	"github.com/knowlet/kagami/common/interserver"
 	"github.com/knowlet/kagami/worldserver/channels"
 	"github.com/knowlet/kagami/worldserver/status"
-	"github.com/Francesco149/maplelib"
+	"github.com/knowlet/maplelib"
 )
 
 // HandleLogin handles packets exchanged between the worldserver and the loginserver

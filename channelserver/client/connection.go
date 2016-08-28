@@ -30,7 +30,7 @@ import (
 	"github.com/knowlet/kagami/common/consts"
 	"github.com/knowlet/kagami/common/packets"
 	"github.com/knowlet/kagami/common/utils"
-	"github.com/Francesco149/maplelib"
+	"github.com/knowlet/maplelib"
 )
 
 // TODO: generic interface for movable entities

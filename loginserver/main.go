@@ -29,7 +29,7 @@ import (
 	"github.com/knowlet/kagami/common/consts"
 	"github.com/knowlet/kagami/loginserver/client"
 	"github.com/knowlet/kagami/loginserver/worlds"
-	"github.com/Francesco149/maplelib"
+	"github.com/knowlet/maplelib"
 )
 
 // loadDefaultWorlds loads and adds the default world list to the loginserver

@@ -27,7 +27,7 @@ import (
 import (
 	"github.com/knowlet/kagami/common/consts"
 	"github.com/knowlet/kagami/common/packets"
-	"github.com/Francesco149/maplelib"
+	"github.com/knowlet/maplelib"
 )
 
 const handshakeHeader = 0x000D

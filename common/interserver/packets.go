@@ -17,7 +17,7 @@ package interserver
 
 import (
 	"github.com/knowlet/kagami/common/packets"
-	"github.com/Francesco149/maplelib"
+	"github.com/knowlet/maplelib"
 )
 
 // Server types for Auth()

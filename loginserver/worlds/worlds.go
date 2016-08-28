@@ -28,7 +28,7 @@ import (
 	"github.com/knowlet/kagami/common/packets"
 	"github.com/knowlet/kagami/common/utils"
 	"github.com/knowlet/kagami/loginserver/client"
-	"github.com/Francesco149/maplelib"
+	"github.com/knowlet/maplelib"
 )
 
 var mut sync.Mutex

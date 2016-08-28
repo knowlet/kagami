@@ -30,7 +30,7 @@ import (
 	"github.com/knowlet/kagami/common/consts"
 	"github.com/knowlet/kagami/common/interserver"
 	"github.com/knowlet/kagami/common/utils"
-	"github.com/Francesco149/maplelib"
+	"github.com/knowlet/maplelib"
 )
 
 // Handle handles inter-server packets exchanged between the channel server and the login/world server

@@ -27,7 +27,7 @@ import (
 	"github.com/knowlet/kagami/common"
 	"github.com/knowlet/kagami/common/consts"
 	"github.com/knowlet/kagami/common/interserver"
-	"github.com/Francesco149/maplelib"
+	"github.com/knowlet/maplelib"
 )
 
 func main() {
