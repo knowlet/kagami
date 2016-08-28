@@ -73,7 +73,7 @@ func Handle(con *client.Connection, p maplelib.Packet) (handled bool, err error)
 // connectData returns a packet that sends the initial character data when
 // a player connects to the channelserver
 func connectData(con *client.Connection, chanid int8) (p maplelib.Packet) {
-	p = packets.NewEncryptedPacket(packets.OWarpToMap)
+	p = packets.NewEncryptedPacket(packets.OSetField)
 	// TODO: add all missing data
 	p.Encode4s(int32(chanid))
 	p.Encode1(0x01)          // what the hell is this

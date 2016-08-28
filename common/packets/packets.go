@@ -67,6 +67,7 @@ func AuthSuccessRequestPin(username string) (p maplelib.Packet) {
 
 // Login failed reasons for LoginFailed()
 const (
+	LoginSuccess			= 0
 	LoginIDDeleted          = 3  // ID deleted or blocked
 	LoginIncorrectPassword  = 4  // Incorrect password
 	LoginNotRegistered      = 5  // Not a registered id
@@ -460,7 +461,7 @@ func EnableActions() (p maplelib.Packet) {
 
 // WarpToMap returns a packet that warps the client to a map
 func WarpToMap(mapid int32, portalid int32, hp int16, channel int8) (p maplelib.Packet) {
-	p = NewEncryptedPacket(OWarpToMap)
+	p = NewEncryptedPacket(OSetField)
 	p.Encode4s(int32(channel))
 	p.Encode2(0x0002)
 	p.Encode2(0x0000)
