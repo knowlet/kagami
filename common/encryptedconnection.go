@@ -30,7 +30,7 @@ import (
 	"github.com/knowlet/maplelib"
 )
 
-const handshakeHeader = 0x000D
+const handshakeHeader = 0x000E
 const debugPackets = false // enable this to see all packet traffic in real time
 
 // A IOError is returned when an I/O error occurs while reading/writing data from the socket
@@ -91,7 +91,7 @@ func (c *EncryptedConnection) renewRecvTimeout() {
 func makeHandshake(mapleVersion uint16, ivsend []byte,
 	ivrecv []byte, testserver bool) (p maplelib.Packet) {
 
-	testbyte := byte(8)
+	testbyte := byte(6)
 	if testserver {
 		testbyte = 5
 	}
@@ -99,7 +99,7 @@ func makeHandshake(mapleVersion uint16, ivsend []byte,
 	p = maplelib.NewPacket()
 	p.Encode2(handshakeHeader) // header
 	p.Encode2(mapleVersion)    // game version
-	p.Encode2(0x0000)          // dunno maybe version is a dword
+	p.EncodeString("1")          // dunno maybe version is a dword
 	p.Append(ivrecv[:4])
 	p.Append(ivsend[:4])
 	p.Encode1(testbyte) // 5 = test server, else 8
@@ -145,7 +145,7 @@ func NewEncryptedConnection(con net.Conn, isTestServer, isclient bool) (c *Encry
 		c.sendHandshake(isTestServer)
 	} else {
 		// wait for handshake
-		hs := maplelib.Packet(make([]byte, 15))
+		hs := maplelib.Packet(make([]byte, 16))
 		err := c.tryRead(hs)
 		if err != nil {
 			fmt.Println("Failed to read handshake packet:", err)
@@ -181,7 +181,7 @@ func NewEncryptedConnection(con net.Conn, isTestServer, isclient bool) (c *Encry
 			return
 		}
 
-		_, err = it.Decode2()
+		_, err = it.DecodeString()
 
 		// send iv
 		for i := 0; i < 4; i++ {
